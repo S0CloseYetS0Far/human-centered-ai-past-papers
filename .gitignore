@@ -1,0 +1,6 @@
+# Course materials (lecture slides and scanned exam papers) are not published
+slides/
+exams/
+
+# Local tooling
+.claude/

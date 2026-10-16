@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HCAI Study Guide</title>
+  <link rel="stylesheet" href="assets/styles.css?v=4">
+</head>
+<body>
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="topbar-title">HCAI Study Guide</span>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-title">HCAI Study Guide</div>
+        <div class="brand-sub" id="courseName"></div>
+      </div>
+      <label class="search">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="search" id="search" placeholder="Search questions  ( / )" autocomplete="off" aria-label="Search questions">
+      </label>
+      <nav id="nav" aria-label="Sections"></nav>
+      <div class="sidebar-foot" id="sidebarFoot"></div>
+    </aside>
+    <div class="scrim" id="scrim" hidden></div>
+    <main id="main" tabindex="-1"></main>
+  </div>
+
+  <script src="data/questions.js"></script>
+  <script src="assets/app.js?v=4"></script>
+</body>
+</html>
