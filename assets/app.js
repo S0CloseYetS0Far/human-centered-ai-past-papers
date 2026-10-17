@@ -138,9 +138,43 @@
     if (s.steps && s.steps.length) {
       h += "<h4>Step by step</h4><ol>" + s.steps.map(function (x) { return "<li>" + fmt(x) + "</li>"; }).join("") + "</ol>";
     }
-    if (s.slideRefs && s.slideRefs.length) {
-      h += '<h4>Slides</h4><ul class="refs">' + s.slideRefs.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+    return h;
+  }
+
+  function chapterByNumber(n) {
+    for (var i = 0; i < DATA.chapters.length; i++) if (+DATA.chapters[i].number === n) return DATA.chapters[i];
+    return null;
+  }
+
+  // "Module 3, pp.22–24 – Tangible Interfaces" → module, slide pages, topic,
+  // and a link that opens the slide PDF at that page.
+  function slideRefHtml(ref) {
+    var m = /^Module\s+(\d+),\s*pp?\.\s*(\d+)(?:\s*[–-]\s*(\d+))?\s*[–-]\s*(.*)$/.exec(ref);
+    if (!m) return '<li><span class="ref-topic">' + esc(ref) + "</span></li>";
+    var ch = chapterByNumber(+m[1]);
+    var pages = m[3] ? "Slides " + m[2] + "–" + m[3] : "Slide " + m[2];
+    return "<li>" +
+      '<span class="ref-where">Module ' + esc(m[1]) + " · " + pages + "</span>" +
+      '<span class="ref-topic">' + esc(m[4]) + "</span>" +
+      (ch && ch.slides ? '<a class="ref-open" href="' + esc(ch.slides) + "#page=" + m[2] + '" target="_blank" rel="noopener" title="Open the slides at this page">Open ↗</a>' : "") +
+      "</li>";
+  }
+
+  // Read-only note: which slide pages the question comes from.
+  function noteHtml(q) {
+    var refs = q.slideRefs || [];
+    var related = q.relatedSlides || [];
+    if (!refs.length && !related.length) return "";
+    var h = '<div class="slide-note" id="note-' + esc(q.id) + '" hidden>';
+    h += '<div class="note-head">📌 Where this question comes from</div>';
+    if (refs.length) {
+      h += '<ul class="slide-refs">' + refs.map(slideRefHtml).join("") + "</ul>";
     }
+    if (related.length) {
+      h += '<p class="note-sub">This topic isn\'t in the current slides yet. The closest related pages are:</p>' +
+        '<ul class="slide-refs">' + related.map(slideRefHtml).join("") + "</ul>";
+    }
+    h += '<p class="note-foot">Page numbers are the page numbers of the slide PDF.</p></div>';
     return h;
   }
 
@@ -182,16 +216,29 @@
     if (q.table) h += tableHtml(q.table, tokens || []);
     if (q.notes) h += '<div class="note"><strong>Scan note:</strong> ' + esc(q.notes) + "</div>";
 
-    if (st === "solved") {
-      var sid = "sol-" + q.id;
-      h += '<div class="q-actions"><button type="button" class="toggle" aria-expanded="false" aria-controls="' + esc(sid) + '">' +
-        '<span class="toggle-label">Show solution</span>' + icons.chevron + "</button></div>";
-      h += '<div class="solution" id="' + esc(sid) + '" hidden>' + solutionHtml(q.solution) +
-        (auto || tokens ? "" : selfMarkHtml(q)) + "</div>";
-    } else if (st === "unsolved" && q.unsolvedReason) {
+    if (st === "unsolved" && q.unsolvedReason) {
       h += '<div class="note"><strong>Why it\'s unsolved:</strong> ' + esc(q.unsolvedReason) + "</div>";
     } else if (st === UNASSIGNED && q.unassignedReason) {
       h += '<div class="note info"><strong>Why it\'s unassigned:</strong> ' + esc(q.unassignedReason) + "</div>";
+    }
+
+    var note = noteHtml(q);
+    var sid = "sol-" + q.id;
+    if (st === "solved" || note) {
+      h += '<div class="q-actions">';
+      if (st === "solved") {
+        h += '<button type="button" class="toggle" aria-expanded="false" aria-controls="' + esc(sid) + '">' +
+          '<span class="toggle-label">Show solution</span>' + icons.chevron + "</button>";
+      }
+      if (note) {
+        h += '<button type="button" class="note-btn" aria-expanded="false" aria-controls="note-' + esc(q.id) + '" title="Which slide pages this question comes from">📌 Note</button>';
+      }
+      h += "</div>";
+    }
+    h += note;
+    if (st === "solved") {
+      h += '<div class="solution" id="' + esc(sid) + '" hidden>' + solutionHtml(q.solution) +
+        (auto || tokens ? "" : selfMarkHtml(q)) + "</div>";
     }
     h += "</article>";
     return h;
@@ -591,6 +638,14 @@
       var right = opt === correctOpt;
       list.insertAdjacentHTML("afterend", verdictHtml(right, correctOpt.getAttribute("data-key")));
       recordAnswer(qCard, right ? "right" : "wrong", opt.getAttribute("data-key"));
+      return;
+    }
+    var noteBtn = e.target.closest(".note-btn");
+    if (noteBtn) {
+      var panel = document.getElementById(noteBtn.getAttribute("aria-controls"));
+      var open = noteBtn.getAttribute("aria-expanded") !== "true";
+      noteBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      if (panel) panel.hidden = !open;
       return;
     }
     var mark = e.target.closest("[data-mark]");
