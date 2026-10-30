@@ -1,713 +1,547 @@
 (function () {
   "use strict";
+  var D = window.STUDY_DATA;
+  var app = document.getElementById("app");
+  var navbar = document.getElementById("navbar");
 
-  var DATA = window.STUDY_DATA;
-  var main = document.getElementById("main");
-  var nav = document.getElementById("nav");
-  var searchInput = document.getElementById("search");
-  var sidebar = document.getElementById("sidebar");
-  var scrim = document.getElementById("scrim");
-  var menuBtn = document.getElementById("menuBtn");
-
-  if (!DATA || !Array.isArray(DATA.questions)) {
-    main.innerHTML = '<div class="view"><h1>Data not found</h1><p class="lead">Could not load <code>data/questions.js</code>. Make sure it sits next to <code>index.html</code> in a <code>data</code> folder.</p></div>';
+  if (!D || !Array.isArray(D.questions)) {
+    app.innerHTML = '<section class="hero"><h1>Data not found</h1><p>Could not load <code>data/questions.js</code>. Make sure it sits in a <code>data</code> folder next to <code>index.html</code>.</p></section>';
     return;
   }
 
+  var STORE = "hcai-bank-v2";
+  var ALL = "all";
   var UNASSIGNED = "unassigned";
-  var state = { source: "all", query: "" };
+  var TYPE_LABEL = { mcq: "Multiple choice", written: "Written" };
 
   // ---------- helpers ----------
   function esc(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
   }
-  // Escape, then allow **bold** (used in solutions only).
-  function fmt(s) {
-    return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  }
+  // Escape, then allow **bold** (used in solutions).
+  function fmt(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
   function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-  // Escape text and wrap search tokens in <mark>, without breaking entities.
   function hl(s, tokens) {
     s = String(s == null ? "" : s);
     if (!tokens || !tokens.length) return esc(s);
     var re = new RegExp("(" + tokens.map(escRe).join("|") + ")", "gi");
-    return s.split(re).map(function (part, i) {
-      return i % 2 ? "<mark>" + esc(part) + "</mark>" : esc(part);
-    }).join("");
+    return s.split(re).map(function (p, i) { return i % 2 ? '<mark class="hit">' + esc(p) + "</mark>" : esc(p); }).join("");
   }
-  function statusOf(q) {
-    if (!q.chapter) return UNASSIGNED;
-    return q.solution ? "solved" : "unsolved";
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
   }
-  function chapterById(id) {
-    for (var i = 0; i < DATA.chapters.length; i++) if (DATA.chapters[i].id === id) return DATA.chapters[i];
-    return null;
+
+  var chapters = D.chapters.slice().sort(function (a, b) { return a.number - b.number; });
+  var chById = {};
+  chapters.forEach(function (c) { chById[c.id] = c; });
+  function chByNumber(n) { for (var i = 0; i < chapters.length; i++) if (+chapters[i].number === n) return chapters[i]; return null; }
+
+  var byId = {};
+  D.questions.forEach(function (q, i) { q._i = i; byId[q.id] = q; });
+
+  function sectionOf(q) { return q.chapter && chById[q.chapter] ? q.chapter : UNASSIGNED; }
+  function typeOf(q) { return q.options && q.options.length ? "mcq" : "written"; }
+  function gradable(q) { return sectionOf(q) !== UNASSIGNED && !!q.solution; }
+  function source(q) { return (D.sources && D.sources[q.source]) || { label: q.source, short: q.source, order: 0 }; }
+  function optIndex(q, key) { for (var i = 0; i < q.options.length; i++) if (q.options[i].key === key) return i; return -1; }
+
+  // Newest exam first, keeping the paper's own question order within an exam.
+  // Questions without a solution go last.
+  function ordered(list) {
+    return list.slice().sort(function (a, b) {
+      var ga = gradable(a) ? 0 : 1, gb = gradable(b) ? 0 : 1;
+      if (ga !== gb) return ga - gb;
+      var oa = source(a).order || 0, ob = source(b).order || 0;
+      if (oa !== ob) return ob - oa;
+      return a._i - b._i;
+    });
   }
-  function sectionKey(q) {
-    return q.chapter && chapterById(q.chapter) ? q.chapter : UNASSIGNED;
+  function shuffledKeepUnsolvedLast(list) {
+    var g = list.filter(gradable), rest = list.filter(function (q) { return !gradable(q); });
+    return shuffled(g).concat(shuffled(rest));
   }
-  function sectionLabel(key) {
-    if (key === UNASSIGNED) return "Unassigned";
-    var c = chapterById(key);
-    return c ? "Chapter " + c.number + " · " + c.title : key;
+
+  function chTitle(key) {
+    if (key === ALL) return "All chapters";
+    if (key === UNASSIGNED) return "Topics outside your slides";
+    var c = chById[key];
+    return "Chapter " + c.number + " · " + c.title;
   }
+
+  // ---------- saved state (this browser only) ----------
+  // answers[id] = { done: true, ok: true | false | null, choice: index (MCQ, -1 = revealed without picking) }
+  var saved = { answers: {}, shuffle: false, types: ["mcq", "written"] };
+  try {
+    var raw = localStorage.getItem(STORE);
+    if (raw) saved = Object.assign(saved, JSON.parse(raw));
+    else migrateV1();
+  } catch (e) { /* storage blocked: keep in memory */ }
+  function persist() { try { localStorage.setItem(STORE, JSON.stringify(saved)); } catch (e) {} }
+  function migrateV1() {
+    var old = JSON.parse(localStorage.getItem("hcai-study-answers-v1") || "null");
+    if (!old) return;
+    Object.keys(old).forEach(function (id) {
+      var q = byId[id], r = old[id];
+      if (!q || !r || !r.result) return;
+      var rec = { done: true, ok: r.result === "right" };
+      if (typeOf(q) === "mcq") rec.choice = r.picked ? optIndex(q, r.picked) : -1;
+      saved.answers[id] = rec;
+    });
+    persist();
+  }
+
+  // ---------- theme ----------
+  var themes = ["system", "light", "dark"];
+  var theme = "system";
+  try { theme = localStorage.getItem(STORE + ".theme") || "system"; } catch (e) {}
+  function applyTheme() {
+    if (theme === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", theme);
+    document.getElementById("themeLbl").textContent = theme;
+  }
+  applyTheme();
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    theme = themes[(themes.indexOf(theme) + 1) % 3];
+    try { localStorage.setItem(STORE + ".theme", theme); } catch (e) {}
+    applyTheme();
+  });
+
+  // ---------- question sets ----------
   function questionsIn(key) {
-    return DATA.questions.filter(function (q) { return sectionKey(q) === key; });
+    if (key === ALL) return D.questions.filter(function (q) { return sectionOf(q) !== UNASSIGNED; });
+    return D.questions.filter(function (q) { return sectionOf(q) === key; });
   }
-  function counts(list) {
-    var c = { total: list.length, solved: 0, unsolved: 0, unassigned: 0 };
-    list.forEach(function (q) { c[statusOf(q)]++; });
-    return c;
+  function poolFor(key) {
+    return ordered(questionsIn(key).filter(function (q) { return saved.types.indexOf(typeOf(q)) >= 0; }));
   }
-  function sourceOf(q) {
-    return (DATA.sources && DATA.sources[q.source]) || { label: q.source, short: q.source };
-  }
-  function bySource(list) {
-    if (state.source === "all") return list;
-    return list.filter(function (q) { return q.source === state.source; });
-  }
-  // ---------- your answers (saved in this browser only) ----------
-  // { "<question id>": { "result": "right" | "wrong", "picked": "B" } }
-  // Multiple choice is marked automatically; written answers are self-marked
-  // after reading the solution.
-  var STORE_KEY = "hcai-study-answers-v1";
-  var answers = loadAnswers();
-  function loadAnswers() {
-    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
-  }
-  function saveAnswers() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(answers)); } catch (e) { /* private mode: keep in memory */ }
-  }
-  // Only questions with a solution can be scored.
-  function isGradable(q) { return statusOf(q) === "solved"; }
-  function isAutoGraded(q) { return !!(q.solution && q.solution.correctOption && q.options && q.options.length); }
-  function score(list) {
-    var s = { total: 0, right: 0, wrong: 0, answered: 0 };
+  function stats(list) {
+    var s = { total: 0, done: 0, ok: 0 };
     list.forEach(function (q) {
-      if (!isGradable(q)) return;
+      if (!gradable(q)) return;
       s.total++;
-      var a = answers[q.id];
-      if (!a || (a.result !== "right" && a.result !== "wrong")) return;
-      s.answered++;
-      s[a.result]++;
+      var a = saved.answers[q.id];
+      if (a && a.done) { s.done++; if (a.ok === true) s.ok++; }
     });
     return s;
   }
-  function verdictHtml(right, key) {
-    return '<div class="verdict ' + (right ? "ok" : "bad") + '" role="status">' + (right
-      ? "<strong>✓ Correct!</strong>"
-      : "<strong>✗ Wrong.</strong> The correct answer is <strong>" + esc(key) + "</strong>.") + "</div>";
-  }
-  function badgeHtml(result) {
-    if (result === "right") return '<span class="pill ok result-badge">✓ You got it right</span>';
-    if (result === "wrong") return '<span class="pill bad result-badge">✗ You got it wrong</span>';
-    return '<span class="result-badge" hidden></span>';
-  }
-  function selfMarkHtml(q) {
-    var a = answers[q.id];
-    var r = a && a.result;
-    return '<div class="selfmark"><span class="selfmark-q">Compare with your answer. Did you get it right?</span>' +
-      '<div class="selfmark-btns">' +
-      '<button type="button" class="btn mark-btn ok' + (r === "right" ? " chosen" : "") + '" data-mark="right" aria-pressed="' + (r === "right") + '">✓ I got it right</button>' +
-      '<button type="button" class="btn mark-btn bad' + (r === "wrong" ? " chosen" : "") + '" data-mark="wrong" aria-pressed="' + (r === "wrong") + '">✗ I got it wrong</button>' +
-      "</div></div>";
+
+  // S.mode: "practice" (answer questions) or "review" (step through mistakes with solutions shown)
+  var S = { view: "home", key: null, order: [], idx: 0, mode: "practice", noteOpen: false };
+  var resetArmed = false;
+  var query = "";
+
+  function start(key, ids, mode, at) {
+    var list = ids ? ids.map(function (id) { return byId[id]; }) : poolFor(key);
+    if (!list.length) return;
+    if (!ids && saved.shuffle) list = shuffledKeepUnsolvedLast(list);
+    S.key = key;
+    S.order = list.map(function (q) { return q.id; });
+    S.idx = Math.max(0, at ? S.order.indexOf(at) : 0);
+    S.mode = mode || "practice";
+    S.view = "quiz";
+    S.noteOpen = false;
+    render();
   }
 
-  var icons = {
-    chevron: '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-  };
+  // ---------- home ----------
+  function renderHome() {
+    navbar.hidden = true;
+    var st = stats(D.questions);
+    var solvedCount = D.questions.filter(gradable).length;
+    var h = '<section class="hero"><span class="label">Past exam questions sorted by lecture chapter</span>' +
+      "<h1>Practice every past HCAI exam question, chapter by chapter.</h1>" +
+      "<p>Each question is solved and explained, with the exam it came from and the slide pages it is based on. Pick a chapter, answer one question at a time, and use Next to move on.</p>" +
+      '<div class="stats"><span><b>' + D.questions.length + "</b> questions</span><span><b>" + solvedCount + "</b> solved</span><span><b>" +
+      Object.keys(D.sources).length + "</b> exams &amp; quizzes</span><span><b>" + st.done + "</b> answered · <b>" + st.ok + "</b> correct</span></div></section>";
 
-  // ---------- rendering: pieces ----------
-  function tableHtml(t, tokens) {
-    if (!t || !t.headers) return "";
-    var h = '<div class="table-wrap"><table><thead><tr>' +
-      t.headers.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") +
-      "</tr></thead><tbody>" +
-      (t.rows || []).map(function (r) {
-        return "<tr>" + r.map(function (cell) { return "<td>" + (tokens ? hl(cell, tokens) : fmt(cell)) + "</td>"; }).join("") + "</tr>";
-      }).join("") +
-      "</tbody></table></div>";
+    h += '<section class="controls" aria-label="Practice settings">' +
+      '<div class="ctl-row"><span class="label">Order</span>' +
+      '<button type="button" class="switch" id="shuffleSw" role="switch" aria-checked="' + (saved.shuffle ? "true" : "false") + '"><i></i>Shuffle questions</button>' +
+      '<span class="label">' + (saved.shuffle ? "random order" : "newest exam first") + "</span></div>" +
+      '<div class="ctl-row"><span class="label">Question types</span>' +
+      ["mcq", "written"].map(function (t) {
+        return '<button type="button" class="chip" data-type="' + t + '" aria-pressed="' + (saved.types.indexOf(t) >= 0) + '">' + TYPE_LABEL[t] + "</button>";
+      }).join("") + "</div>" +
+      '<div class="ctl-row"><span class="label">Search</span><input type="search" class="search" id="search" placeholder="Search question text…" autocomplete="off" value="' + esc(query) + '"></div>' +
+      '<div class="ctl-row"><span class="label">Progress</span>' +
+      (st.done
+        ? (resetArmed
+          ? '<span style="font-size:.9rem">Clear all ' + st.done + ' saved answers?</span><button type="button" class="chip" id="resetYes">Yes, reset</button><button type="button" class="chip" id="resetNo">Cancel</button>'
+          : '<button type="button" class="chip" id="resetBtn">Reset my answers</button>')
+        : '<span style="font-size:.9rem;color:var(--muted)">No answers saved yet</span>') +
+      "</div></section>";
+
+    h += '<div id="homeBody">' + homeBody() + "</div>";
+    h += '<p class="note"><b>Keys:</b> <span class="kbd">←</span> <span class="kbd">→</span> move between questions, <span class="kbd">1</span>–<span class="kbd">4</span> pick an option, <span class="kbd">Enter</span> shows the solution, <span class="kbd">N</span> opens the note. Your answers are remembered in this browser only.</p>';
+    app.innerHTML = h;
+
+    document.getElementById("shuffleSw").addEventListener("click", function () { saved.shuffle = !saved.shuffle; persist(); renderHome(); });
+    var rb = document.getElementById("resetBtn");
+    if (rb) rb.addEventListener("click", function () { resetArmed = true; renderHome(); });
+    var ry = document.getElementById("resetYes");
+    if (ry) ry.addEventListener("click", function () { saved.answers = {}; resetArmed = false; persist(); renderHome(); });
+    var rn = document.getElementById("resetNo");
+    if (rn) rn.addEventListener("click", function () { resetArmed = false; renderHome(); });
+    app.querySelectorAll("[data-type]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var t = b.getAttribute("data-type"), i = saved.types.indexOf(t);
+        if (i >= 0) { if (saved.types.length > 1) saved.types.splice(i, 1); } else saved.types.push(t);
+        persist(); renderHome();
+      });
+    });
+    var search = document.getElementById("search");
+    search.addEventListener("input", function () {
+      query = search.value.trim();
+      document.getElementById("homeBody").innerHTML = homeBody();
+    });
+  }
+
+  function homeClick(e) {
+    if (S.view !== "home") return;
+    var card = e.target.closest("[data-ch]");
+    if (card && !card.disabled) { start(card.getAttribute("data-ch")); return; }
+    var hit = e.target.closest("[data-open]");
+    if (hit) {
+      var q = byId[hit.getAttribute("data-open")];
+      var key = sectionOf(q);
+      var pool = poolFor(key).map(function (x) { return x.id; });
+      if (pool.indexOf(q.id) >= 0) start(key, null, "practice", q.id);
+      else start(key, [q.id]);
+    }
+  }
+
+  function homeBody() {
+    if (query.length >= 2) return searchResults(query);
+    var h = '<div class="group-title"><h2>Lecture chapters</h2><span class="label">' + chapters.length + " decks</span></div><div class=\"grid\">";
+    h += chapterCard(ALL);
+    chapters.forEach(function (c) { h += chapterCard(c.id); });
+    h += "</div>";
+    if (questionsIn(UNASSIGNED).length) {
+      h += '<div class="group-title"><h2>Topics outside your slides</h2><span class="label">no solutions yet</span></div>' +
+        '<p class="note" style="margin-top:0">These exam questions cover topics that are not in Modules 1–' + chapters.length + '. They will move into a chapter when its slides are added.</p><div class="grid">' +
+        chapterCard(UNASSIGNED) + "</div>";
+    }
     return h;
   }
 
-  function solutionHtml(s) {
-    var h = '<p class="answer">' + fmt(s.answer || "") + "</p>";
-    if (s.table) h += tableHtml(s.table);
-    if (s.steps && s.steps.length) {
-      h += "<h4>Step by step</h4><ol>" + s.steps.map(function (x) { return "<li>" + fmt(x) + "</li>"; }).join("") + "</ol>";
+  function chapterCard(key) {
+    var list = poolFor(key);
+    var all = questionsIn(key);
+    var st = stats(all);
+    var pct = st.total ? Math.round(100 * st.done / st.total) : 0;
+    var num, title, meta;
+    if (key === ALL) { num = "∗"; title = "All chapters mixed"; meta = list.length + " questions · good for a full mock exam"; }
+    else if (key === UNASSIGNED) { num = "?"; title = "Outside your slides"; meta = list.length + " questions · read-only for now"; }
+    else {
+      var c = chById[key];
+      num = c.number; title = c.title;
+      meta = list.length + " question" + (list.length === 1 ? "" : "s") + (c.slideCount ? " · " + c.slideCount + " slides" : "");
     }
-    return h;
+    return '<button type="button" class="ch' + (key === ALL ? " all" : "") + '" data-ch="' + key + '"' + (list.length ? "" : " disabled") + ">" +
+      '<span class="num">' + num + '</span><span class="t">' + esc(title) + "</span>" +
+      '<span class="meta">' + esc(meta) + (st.done ? " · " + st.done + " done · " + st.ok + " correct" : "") + "</span>" +
+      '<span class="bar" aria-hidden="true"><span style="width:' + pct + '%"></span></span></button>';
   }
 
-  function chapterByNumber(n) {
-    for (var i = 0; i < DATA.chapters.length; i++) if (+DATA.chapters[i].number === n) return DATA.chapters[i];
-    return null;
-  }
-
-  // "Module 3, pp.22–24 – Tangible Interfaces" → module, slide pages, topic,
-  // and a link that opens the slide PDF at that page.
-  function slideRefHtml(ref) {
-    var m = /^Module\s+(\d+),\s*pp?\.\s*(\d+)(?:\s*[–-]\s*(\d+))?\s*[–-]\s*(.*)$/.exec(ref);
-    if (!m) return '<li><span class="ref-topic">' + esc(ref) + "</span></li>";
-    var ch = chapterByNumber(+m[1]);
-    var pages = m[3] ? "Slides " + m[2] + "–" + m[3] : "Slide " + m[2];
-    return "<li>" +
-      '<span class="ref-where">Module ' + esc(m[1]) + " · " + pages + "</span>" +
-      '<span class="ref-topic">' + esc(m[4]) + "</span>" +
-      (ch && ch.slides ? '<a class="ref-open" href="' + esc(ch.slides) + "#page=" + m[2] + '" target="_blank" rel="noopener" title="Open the slides at this page">Open ↗</a>' : "") +
-      "</li>";
-  }
-
-  // Read-only note: which slide pages the question comes from.
-  function noteHtml(q) {
-    var refs = q.slideRefs || [];
-    var related = q.relatedSlides || [];
-    if (!refs.length && !related.length) return "";
-    var h = '<div class="slide-note" id="note-' + esc(q.id) + '" hidden>';
-    h += '<div class="note-head">📌 Where this question comes from</div>';
-    if (refs.length) {
-      h += '<ul class="slide-refs">' + refs.map(slideRefHtml).join("") + "</ul>";
-    }
-    if (related.length) {
-      h += '<p class="note-sub">This topic isn\'t in the current slides yet. The closest related pages are:</p>' +
-        '<ul class="slide-refs">' + related.map(slideRefHtml).join("") + "</ul>";
-    }
-    h += '<p class="note-foot">Page numbers are the page numbers of the slide PDF.</p></div>';
-    return h;
-  }
-
-  function questionHtml(q, num, opts) {
-    opts = opts || {};
-    var tokens = opts.tokens || null;
-    var st = statusOf(q);
-    var src = sourceOf(q);
-    var correct = q.solution && q.solution.correctOption;
-    var auto = isAutoGraded(q);
-    var saved = st === "solved" && !tokens ? answers[q.id] : null;
-
-    var h = '<article class="q' + (auto && saved ? " answered" : "") + '" id="' + esc(q.id) + '" data-status="' + st + '">';
-    h += '<div class="q-meta">';
-    if (num) h += '<span class="q-num">#' + num + "</span>";
-    h += '<span class="src" title="' + esc(src.label) + '">' + hl(src.short || src.label, tokens) + "</span>";
-    h += '<span class="ref">' + hl(q.ref, tokens) + "</span>";
-    if (q.marks) h += '<span class="dim">· ' + esc(q.marks) + "</span>";
-    if (q.page) h += '<span class="dim" title="' + esc(src.file || "") + '">· PDF p.' + esc(q.page) + "</span>";
-    if (opts.showSection) {
-      var sk = sectionKey(q);
-      h += '<span class="sec"><a href="#/' + esc(sk) + '" class="pill neutral">' + esc(sk === UNASSIGNED ? "Unassigned" : "Ch " + chapterById(sk).number) + "</a></span>";
-    }
-    if (st === "unsolved") h += '<span class="pill warn">Unsolved</span>';
-    if (st === "solved") h += badgeHtml(saved && saved.result);
-    h += "</div>";
-
-    if (q.context) h += '<p class="q-context">' + hl(q.context, tokens) + "</p>";
-    h += '<p class="q-text">' + hl(q.text, tokens) + "</p>";
-
-    if (q.options && q.options.length) {
-      h += '<ul class="options">' + q.options.map(function (o) {
-        var cls = "option" + (o.key === correct ? " correct" : "") + (auto && saved && saved.picked === o.key ? " picked" : "");
-        return '<li><button type="button" class="' + cls + '" data-key="' + esc(o.key) + '"' + (auto && saved ? ' aria-disabled="true"' : "") + ">" +
-          '<span class="key">' + esc(o.key) + "</span><span>" + hl(o.text, tokens) + "</span></button></li>";
-      }).join("") + "</ul>";
-      if (auto && saved) h += verdictHtml(saved.result === "right", correct);
-    }
-    if (q.table) h += tableHtml(q.table, tokens || []);
-    if (q.notes) h += '<div class="note"><strong>Scan note:</strong> ' + esc(q.notes) + "</div>";
-
-    if (st === "unsolved" && q.unsolvedReason) {
-      h += '<div class="note"><strong>Why it\'s unsolved:</strong> ' + esc(q.unsolvedReason) + "</div>";
-    } else if (st === UNASSIGNED && q.unassignedReason) {
-      h += '<div class="note info"><strong>Why it\'s unassigned:</strong> ' + esc(q.unassignedReason) + "</div>";
-    }
-
-    var note = noteHtml(q);
-    var sid = "sol-" + q.id;
-    if (st === "solved" || note) {
-      h += '<div class="q-actions">';
-      if (st === "solved") {
-        h += '<button type="button" class="toggle" aria-expanded="false" aria-controls="' + esc(sid) + '">' +
-          '<span class="toggle-label">Show solution</span>' + icons.chevron + "</button>";
-      }
-      if (note) {
-        h += '<button type="button" class="note-btn" aria-expanded="false" aria-controls="note-' + esc(q.id) + '" title="Which slide pages this question comes from">📌 Note</button>';
-      }
-      h += "</div>";
-    }
-    h += note;
-    if (st === "solved") {
-      h += '<div class="solution" id="' + esc(sid) + '" hidden>' + solutionHtml(q.solution) +
-        (auto || tokens ? "" : selfMarkHtml(q)) + "</div>";
-    }
-    h += "</article>";
-    return h;
-  }
-
-  function sourceSelectHtml() {
-    var h = '<select id="sourceFilter" aria-label="Filter by exam"><option value="all">All exams</option>';
-    Object.keys(DATA.sources || {}).forEach(function (k) {
-      h += '<option value="' + esc(k) + '"' + (state.source === k ? " selected" : "") + ">" + esc(DATA.sources[k].label) + "</option>";
-    });
-    return h + "</select>";
-  }
-
-  function countPills(c, withUnassigned) {
-    if (withUnassigned) return '<span class="pill neutral" title="Unassigned questions">' + c.unassigned + "</span>";
-    return '<span class="pill ok" title="Solved">✓ ' + c.solved + '</span><span class="pill warn" title="Unsolved">? ' + c.unsolved + "</span>";
-  }
-
-  // ---------- rendering: nav ----------
-  function renderNav(active) {
-    var h = '<ul><li><a href="#/" ' + (active === "overview" ? 'aria-current="page"' : "") + '><span class="nav-num">≡</span><span class="nav-text">Overview</span></a></li></ul>';
-    h += '<div class="nav-label">Chapters</div><ul>';
-    DATA.chapters.forEach(function (c) {
-      var n = counts(questionsIn(c.id));
-      h += '<li><a href="#/' + esc(c.id) + '"' + (active === c.id ? ' aria-current="page"' : "") + ">" +
-        '<span class="nav-num">' + esc(c.number) + '</span><span class="nav-text">' + esc(c.title) + "</span>" +
-        '<span class="nav-counts">' + countPills(n) + "</span></a></li>";
-    });
-    h += "</ul><ul style=\"margin-top:10px\">";
-    var u = counts(questionsIn(UNASSIGNED));
-    h += '<li><a href="#/' + UNASSIGNED + '"' + (active === UNASSIGNED ? ' aria-current="page"' : "") + ">" +
-      '<span class="nav-num">?</span><span class="nav-text">Unassigned</span><span class="nav-counts">' + countPills(u, true) + "</span></a></li></ul>";
-    nav.innerHTML = h;
-  }
-
-  // ---------- rendering: views ----------
-  function renderOverview() {
-    var all = counts(DATA.questions);
-    var h = '<div class="view">';
-    h += '<div class="eyebrow">' + esc(DATA.course || "") + "</div>";
-    h += "<h1>Past exam questions, sorted by chapter</h1>";
-    h += '<p class="lead">Every question from the past exams, filed under the chapter of the slides it belongs to. Try each one yourself, then press <em>Show solution</em>. For multiple-choice items, click an option and you\'ll be told straight away if it\'s right or wrong. For written answers, open the solution and mark yourself. Your score for each chapter appears at the end of the chapter and in the table below.</p>';
-
-    h += '<div class="grid-stats">' +
-      stat(all.total, "questions in total") +
-      stat(all.solved, "solved") +
-      stat(all.unsolved, "unsolved (for you)") +
-      stat(all.unassigned, "unassigned") + "</div>";
-
-    h += "<h2>Chapters</h2>";
-    h += '<div class="table-wrap"><table class="overview-table"><thead><tr><th>Section</th><th>Questions</th><th>Solved</th><th>Unsolved</th><th>Your score</th></tr></thead><tbody>';
-    DATA.chapters.forEach(function (c) {
-      var n = counts(questionsIn(c.id));
-      var s = score(questionsIn(c.id));
-      h += '<tr><td><a href="#/' + esc(c.id) + '">Chapter ' + esc(c.number) + " · " + esc(c.title) + "</a></td><td>" + n.total + "</td><td>" + n.solved + "</td><td>" + n.unsolved + "</td>" +
-        "<td>" + (s.answered ? '<a href="' + resultsHref(c.id) + '">' + s.right + " / " + s.total + "</a>" : "—") + "</td></tr>";
-    });
-    var u = counts(questionsIn(UNASSIGNED));
-    h += '<tr><td><a href="#/' + UNASSIGNED + '">Unassigned</a></td><td>' + u.total + "</td><td>—</td><td>—</td><td>—</td></tr>";
-    h += "</tbody></table></div>";
-
-    h += "<h2>Exams</h2><ul class=\"sources\">";
-    Object.keys(DATA.sources || {}).forEach(function (k) {
-      var s = DATA.sources[k];
-      var n = DATA.questions.filter(function (q) { return q.source === k; }).length;
-      h += "<li><strong>" + esc(s.label) + '</strong> <span class="pill neutral">' + n + " questions</span>" +
-        '<div class="file">' + esc(s.file) + "</div>" +
-        (s.notes ? '<div class="src-notes">' + esc(s.notes) + "</div>" : "") + "</li>";
-    });
-    h += "</ul>";
-    h += '<p class="section-note" style="margin-top:24px">Last updated ' + esc(DATA.updated || "") + ".</p>";
-    h += "</div>";
-    main.innerHTML = h;
-
-    function stat(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + l + "</div></div>"; }
-  }
-
-  // The order questions are stepped through in a section: solved first, then
-  // the "Unsolved – for me to solve" ones at the end of the chapter.
-  function sequence(key) {
-    var list = bySource(questionsIn(key));
-    if (key === UNASSIGNED) return list;
-    return list.filter(function (q) { return statusOf(q) === "solved"; })
-      .concat(list.filter(function (q) { return statusOf(q) === "unsolved"; }));
-  }
-  function sectionKeys() {
-    return DATA.chapters.map(function (c) { return c.id; }).concat([UNASSIGNED]);
-  }
-  function questionHref(key, pos) { return "#/" + key + "/" + pos; }
-
-  function renderSection(key, pos) {
-    var isUnassigned = key === UNASSIGNED;
-    var ch = isUnassigned ? null : chapterById(key);
-    if (!isUnassigned && !ch) { location.hash = "#/"; return; }
-
-    var c = counts(questionsIn(key));
-    var seq = sequence(key);
-    var n = seq.length;
-    var i = Math.min(Math.max(pos || 1, 1), Math.max(n, 1));
-    var q = seq[i - 1];
-    var h = '<div class="view">';
-
-    if (isUnassigned) {
-      h += '<div class="eyebrow">Not yet in a chapter</div><h1>Unassigned questions</h1>';
-      h += '<details class="panel"><summary>About this section</summary><p class="section-note" style="margin:0">These questions cover topics that are not in the current slides. They will be sorted into chapters as new modules are added to <code>slides/</code>.</p></details>';
-    } else {
-      h += '<div class="eyebrow">Chapter ' + esc(ch.number) + '</div><h1>' + esc(ch.title) + "</h1>";
-      h += '<div class="stats"><span class="pill neutral">' + c.total + ' questions</span><span class="pill ok">✓ ' + c.solved + ' solved</span><span class="pill warn">? ' + c.unsolved + " unsolved</span></div>";
-      if (ch.topics && ch.topics.length) {
-        h += '<details class="panel"><summary>What this chapter covers</summary>';
-        if (ch.summary) h += '<p class="section-note" style="margin:0 0 8px">' + esc(ch.summary) + "</p>";
-        h += '<ul class="topics">' + ch.topics.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
-        if (ch.keyTerms && ch.keyTerms.length) {
-          h += '<div class="chips">' + ch.keyTerms.map(function (t) { return '<span class="chip">' + esc(t) + "</span>"; }).join("") + "</div>";
-        }
-        if (ch.slides) h += '<p class="section-note" style="margin:12px 0 0">Slides: <a href="' + esc(ch.slides) + '" target="_blank" rel="noopener">' + esc(ch.slides) + "</a></p>";
-        h += "</details>";
-      }
-    }
-
-    h += '<div class="toolbar">' + sourceSelectHtml();
-    if (n > 1) {
-      h += '<select id="jumpTo" aria-label="Go to question">' + seq.map(function (x, k) {
-        var src = sourceOf(x);
-        return '<option value="' + (k + 1) + '"' + (k + 1 === i ? " selected" : "") + ">" +
-          (k + 1) + " · " + esc(src.short || src.label) + " " + esc(x.ref) + (statusOf(x) === "unsolved" ? " (unsolved)" : "") + "</option>";
-      }).join("") + "</select>";
-    }
-    h += "</div>";
-
-    if (!q) {
-      h += emptyFiltered() + "</div>";
-      main.innerHTML = h;
-      return;
-    }
-
-    h += '<div class="progress" aria-label="Question ' + i + " of " + n + '"><div class="progress-text"><span>Question <strong>' + i + "</strong> of " + n + "</span>" +
-      (isUnassigned ? "" : '<span class="score-line" id="scoreLine">' + scoreLineHtml(key) + "</span>") + "</div>" +
-      '<div class="progress-bar"><span style="width:' + (i / n * 100).toFixed(1) + '%"></span></div></div>';
-
-    if (statusOf(q) === "unsolved") {
-      h += '<div class="section-divider">Unsolved – for me to solve</div>';
-      h += '<p class="section-note">Kept exactly as written in the exam. The note below says why it wasn\'t solved.</p>';
-    }
-    h += questionHtml(q, i);
-    h += pagerHtml(key, i, n);
-    h += "</div>";
-    main.innerHTML = h;
-  }
-
-  function resultsHref(key) { return "#/" + key + "/results"; }
-
-  function scoreLineHtml(key) {
-    var s = score(sequence(key));
-    if (!s.total) return "";
-    return "Score: <strong>" + s.right + "</strong> right of " + s.answered + " answered · " +
-      '<a href="' + resultsHref(key) + '">Results</a>';
-  }
-
-  // The button that leaves a section: the next section with questions, or Finish.
-  function nextSectionLink(key) {
-    var keys = sectionKeys();
-    for (var k = keys.indexOf(key) + 1; k < keys.length; k++) {
-      if (sequence(keys[k]).length) {
-        return '<a class="btn primary pager-btn" href="' + questionHref(keys[k], 1) + '">' +
-          esc(keys[k] === UNASSIGNED ? "Unassigned" : "Chapter " + chapterById(keys[k]).number) + " →</a>";
-      }
-    }
-    return '<a class="btn primary pager-btn" href="#/">Finish ✓</a>';
-  }
-
-  function pagerHtml(key, i, n) {
-    var prev = i > 1
-      ? '<a class="btn pager-btn" href="' + questionHref(key, i - 1) + '" rel="prev">← Previous</a>'
-      : '<span class="btn pager-btn disabled" aria-disabled="true">← Previous</span>';
-    var next;
-    if (i < n) {
-      next = '<a class="btn primary pager-btn" href="' + questionHref(key, i + 1) + '" rel="next">Next →</a>';
-    } else if (key !== UNASSIGNED && score(sequence(key)).total) {
-      // End of a chapter: show the score before moving on.
-      next = '<a class="btn primary pager-btn" href="' + resultsHref(key) + '" rel="next">See results →</a>';
-    } else {
-      next = nextSectionLink(key);
-    }
-    return '<nav class="pager" aria-label="Question navigation">' + prev +
-      '<span class="pager-count">' + i + " / " + n + "</span>" + next + "</nav>";
-  }
-
-  function renderResults(key) {
-    var ch = chapterById(key);
-    if (!ch) { location.hash = "#/"; return; }
-    var seq = sequence(key);
-    var gradable = seq.filter(isGradable);
-    var s = score(seq);
-    var pct = s.total ? Math.round(s.right / s.total * 100) : 0;
-    var notAnswered = s.total - s.answered;
-    var unsolvedCount = seq.length - gradable.length;
-
-    var h = '<div class="view">';
-    h += '<div class="eyebrow">Chapter ' + esc(ch.number) + " · Results</div><h1>" + esc(ch.title) + "</h1>";
-    if (state.source !== "all") {
-      h += '<p class="section-note">Only questions from <strong>' + esc(sourceOf({ source: state.source }).label) + "</strong> (exam filter is on).</p>";
-    }
-
-    var tone = pct >= 80 ? "ok" : pct >= 50 ? "warn" : "bad";
-    var message = !s.answered ? "You haven't answered any questions in this chapter yet."
-      : pct === 100 ? "Perfect score. Well done!"
-      : pct >= 80 ? "Great work."
-      : pct >= 50 ? "Good progress. Review the ones you missed."
-      : "Worth another pass. Review the ones you missed.";
-    h += '<div class="score-card ' + tone + '">' +
-      '<div class="score-big"><span class="score-num">' + s.right + '</span><span class="score-of">/ ' + s.total + "</span></div>" +
-      '<div class="score-text"><div class="score-title">You got <strong>' + s.right + "</strong> of " + s.total + " questions right (" + pct + "%)</div>" +
-      '<div class="score-msg">' + message + "</div></div>" +
-      '<div class="progress-bar score-bar"><span style="width:' + pct + '%"></span></div>' +
-      '<div class="stats"><span class="pill ok">✓ ' + s.right + ' right</span><span class="pill bad">✗ ' + s.wrong + ' wrong</span><span class="pill neutral">– ' + notAnswered + " not answered</span></div>" +
-      "</div>";
-
-    if (notAnswered) {
-      var firstMissing = gradable.filter(function (q) { return !answers[q.id]; })[0];
-      h += '<div class="note"><strong>' + notAnswered + " not answered.</strong> These count as not right. " +
-        '<a href="' + questionHref(key, seq.indexOf(firstMissing) + 1) + '">Answer the first one →</a></div>';
-    }
-    if (unsolvedCount) {
-      h += '<div class="note info"><strong>Not scored:</strong> ' + unsolvedCount + " unsolved question" + (unsolvedCount === 1 ? "" : "s") + " (no answer key yet).</div>";
-    }
-
-    h += "<h2>Question by question</h2>";
-    h += '<ul class="result-list">' + gradable.map(function (q) {
-      var a = answers[q.id];
-      var r = a ? a.result : "none";
-      var icon = r === "right" ? "✓" : r === "wrong" ? "✗" : "–";
-      var label = r === "right" ? "Right" : r === "wrong" ? "Wrong" : "Not answered";
-      var pos = seq.indexOf(q) + 1;
-      var src = sourceOf(q);
-      return '<li><a class="result-row ' + r + '" href="' + questionHref(key, pos) + '">' +
-        '<span class="rr-icon" aria-hidden="true">' + icon + "</span>" +
-        '<span class="rr-text"><span class="q-num">#' + pos + "</span> " + esc(src.short || src.label) + " · " + esc(q.ref) +
-        '<span class="rr-snip">' + esc(snippet(q.text, [])) + "</span></span>" +
-        '<span class="rr-label">' + label + "</span></a></li>";
-    }).join("") + "</ul>";
-
-    h += '<nav class="pager" aria-label="Chapter navigation">' +
-      '<button type="button" class="btn pager-btn" data-reset="' + esc(key) + '">↺ Start chapter again</button>' +
-      '<span class="pager-count"></span>' + nextSectionLink(key) + "</nav>";
-    h += "</div>";
-    main.innerHTML = h;
-  }
-
-  function emptyFiltered() {
-    return '<p class="empty">No questions from this exam in this section.</p>';
-  }
-
-  function renderSearch(query) {
-    var tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-    var matches = DATA.questions.filter(function (q) {
-      var src = sourceOf(q);
-      var hay = [q.text, q.context, q.ref, q.notes, src.label, src.short,
-        (q.options || []).map(function (o) { return o.key + " " + o.text; }).join(" "),
-        q.table ? q.table.rows.map(function (r) { return r.join(" "); }).join(" ") : ""
-      ].join(" \n ").toLowerCase();
+  function searchResults(qs) {
+    var tokens = qs.toLowerCase().split(/\s+/).filter(Boolean);
+    var hits = ordered(D.questions).filter(function (q) {
+      var hay = [q.text, q.context, q.ref, source(q).label,
+        (q.options || []).map(function (o) { return o.text; }).join(" "),
+        q.table ? q.table.rows.map(function (r) { return r.join(" "); }).join(" ") : ""].join(" ").toLowerCase();
       return tokens.every(function (t) { return hay.indexOf(t) !== -1; });
     });
-    matches = bySource(matches);
-
-    var h = '<div class="view"><div class="eyebrow">Search</div><h1>' + matches.length + " result" + (matches.length === 1 ? "" : "s") + " for “" + esc(query) + "”</h1>";
-    h += '<p class="lead">Searches question text, options, tables and exam names. Solutions aren\'t searched, so they won\'t give answers away. Tap a result to open it.</p>';
-    h += '<div class="toolbar">' + sourceSelectHtml() + "</div>";
-    if (!matches.length) {
-      h += '<p class="empty">No matching questions.</p>';
-    } else {
-      sectionKeys().forEach(function (k) {
-        var group = matches.filter(function (q) { return sectionKey(q) === k; });
-        if (!group.length) return;
-        var seq = sequence(k);
-        h += '<section class="result-group"><h3>' + esc(sectionLabel(k)) + ' <span class="pill neutral">' + group.length + "</span></h3>";
-        h += group.map(function (q) {
-          var src = sourceOf(q);
-          var pos = seq.indexOf(q) + 1;
-          return '<a class="result" href="' + questionHref(k, pos) + '"><div class="q-meta">' +
-            '<span class="q-num">#' + pos + '</span><span class="src">' + hl(src.short || src.label, tokens) + "</span>" +
-            '<span class="ref">' + hl(q.ref, tokens) + "</span>" +
-            (statusOf(q) === "unsolved" ? '<span class="pill warn">Unsolved</span>' : "") +
-            '</div><div class="snippet">' + hl(snippet(q.text, tokens), tokens) + "</div></a>";
-        }).join("");
-        h += "</section>";
-      });
-    }
-    h += "</div>";
-    main.innerHTML = h;
+    var h = '<div class="group-title"><h2>' + hits.length + " result" + (hits.length === 1 ? "" : "s") + '</h2><span class="label">solutions are not searched</span></div>';
+    if (!hits.length) return h + '<p class="note" style="margin-top:0">No matching questions.</p>';
+    return h + '<ul class="results">' + hits.map(function (q) {
+      var sec = sectionOf(q);
+      return '<li><button type="button" data-open="' + esc(q.id) + '"><span class="label">' +
+        esc(sec === UNASSIGNED ? "Outside your slides" : "Chapter " + chById[sec].number) + " · " + esc(source(q).short) + " · " + esc(q.ref) +
+        '</span><span class="snip">' + hl(snippet(q.text, tokens), tokens) + "</span></button></li>";
+    }).join("") + "</ul>";
   }
-
-  // A short excerpt of the question text around the first search hit.
   function snippet(text, tokens) {
     var flat = String(text || "").replace(/\s+/g, " ").trim();
-    var lower = flat.toLowerCase();
-    var at = -1;
+    var lower = flat.toLowerCase(), at = -1;
     tokens.forEach(function (t) { var p = lower.indexOf(t); if (p !== -1 && (at === -1 || p < at)) at = p; });
-    var start = at > 60 ? at - 60 : 0;
-    var out = flat.slice(start, start + 220);
-    return (start > 0 ? "…" : "") + out + (start + 220 < flat.length ? "…" : "");
+    var startAt = at > 60 ? at - 60 : 0;
+    return (startAt ? "…" : "") + flat.slice(startAt, startAt + 200) + (startAt + 200 < flat.length ? "…" : "");
   }
 
-  // ---------- routing ----------
-  // #/            → overview
-  // #/ch1         → chapter 1, question 1
-  // #/ch1/4       → chapter 1, question 4
-  // #/ch1/results → chapter 1 score
-  function currentRoute() {
-    var parts = (location.hash || "").replace(/^#\/?/, "").split("/");
-    return { key: parts[0] || "overview", pos: parseInt(parts[1], 10) || 1, results: parts[1] === "results" };
+  // ---------- question ----------
+  function tableHtml(t) {
+    if (!t || !t.headers) return "";
+    return '<div class="tbl"><table class="mini"><thead><tr>' + t.headers.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") +
+      "</tr></thead><tbody>" + (t.rows || []).map(function (r) {
+        return "<tr>" + r.map(function (c) { return "<td>" + fmt(c) + "</td>"; }).join("") + "</tr>";
+      }).join("") + "</tbody></table></div>";
   }
 
-  function render() {
-    var route = currentRoute();
-    renderNav(state.query ? null : route.key);
-    if (state.query) { renderSearch(state.query); return; }
-    if (route.key === "overview") renderOverview();
-    else if (route.results && route.key !== UNASSIGNED) renderResults(route.key);
-    else renderSection(route.key, route.pos);
-  }
+  function renderQuiz() {
+    var id = S.order[S.idx], q = byId[id], rec = saved.answers[id] || {};
+    var n = S.order.length, type = typeOf(q), isGradable = gradable(q);
+    var review = S.mode === "review";
+    var revealed = isGradable && (!!rec.done || review);
+    navbar.hidden = false;
 
-  function goTo(key, pos) {
-    var target = questionHref(key, pos);
-    if (location.hash === target) render(); else location.hash = target;
-  }
+    var h = '<section class="qhead"><div class="row"><span class="pos">' + (S.idx + 1) + " / " + n + "</span>" +
+      "<h2>" + esc(chTitle(sectionOf(q))) + "</h2>" +
+      '<button type="button" class="btn ghost small" id="shuffleBtn" title="Shuffle the questions in this set">⤨ Shuffle</button></div>' +
+      '<div class="row"><span class="tag">' + TYPE_LABEL[type] + '</span><span class="tag">' + esc(source(q).short) + " · " + esc(q.ref) + "</span>" +
+      (review ? '<span class="tag accent">Reviewing mistakes</span>' : "") +
+      (sectionOf(q) !== UNASSIGNED && !q.solution ? '<span class="tag warn">Unsolved – for me to solve</span>' : "") +
+      (sectionOf(q) === UNASSIGNED ? '<span class="tag warn">Not in your slides yet</span>' : "") + "</div>" +
+      '<div class="frames-wrap"><div class="frames" role="list" aria-label="Questions in this set">' +
+      S.order.map(function (qid, i) {
+        var r = saved.answers[qid], cls = [];
+        if (r && r.done) cls.push(r.ok === true ? "ok" : r.ok === false ? "bad" : "seen");
+        if (i === S.idx) cls.push("cur");
+        return '<button type="button" role="listitem" class="' + cls.join(" ") + '" data-jump="' + i + '" aria-label="Question ' + (i + 1) + '"></button>';
+      }).join("") + '</div><div class="legend"><span><i style="background:var(--ok)"></i>correct</span><span><i style="background:var(--bad)"></i>missed</span><span><i style="background:var(--rule)"></i>viewed</span><span><i style="background:var(--frame)"></i>not yet</span></div></div></section>';
 
-  window.addEventListener("hashchange", function () {
-    if (state.query) { state.query = ""; searchInput.value = ""; }
-    closeMenu();
-    render();
-    window.scrollTo(0, 0);
-  });
+    h += '<article class="sheet" aria-live="polite">';
+    if (q.context) h += '<div class="qctx">' + esc(q.context) + "</div>";
+    h += '<div class="qtext">' + esc(q.text) + "</div>";
+    if (q.table) h += tableHtml(q.table);
+    if (q.notes) h += '<div class="scan"><b>Scan note:</b> ' + esc(q.notes) + "</div>";
 
-  // ---------- interactions ----------
-  var searchTimer = null;
-  searchInput.addEventListener("input", function () {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function () {
-      var v = searchInput.value.trim();
-      state.query = v.length >= 2 ? v : "";
-      render();
-    }, 120);
-  });
-  searchInput.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { searchInput.value = ""; state.query = ""; render(); }
-    if (e.key === "Enter") closeMenu();
-  });
-  document.addEventListener("keydown", function (e) {
-    var tag = (document.activeElement && document.activeElement.tagName) || "";
-    var typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
-    if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === "/") {
-      e.preventDefault();
-      searchInput.focus();
-    } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-      // Arrow keys step through questions, same as the Previous / Next buttons.
-      var link = main.querySelector(e.key === "ArrowRight" ? ".pager a.primary" : '.pager a[rel="prev"]');
-      if (link) { e.preventDefault(); link.click(); }
-    }
-  });
-
-  function setRevealed(card, open) {
-    var btn = card.querySelector(".toggle");
-    var sol = card.querySelector(".solution");
-    if (!btn || !sol) return;
-    btn.setAttribute("aria-expanded", open ? "true" : "false");
-    btn.querySelector(".toggle-label").textContent = open ? "Hide solution" : "Show solution";
-    sol.hidden = !open;
-    card.classList.toggle("revealed", open);
-  }
-
-  main.addEventListener("click", function (e) {
-    var toggle = e.target.closest(".toggle");
-    if (toggle) {
-      var card = toggle.closest(".q");
-      setRevealed(card, toggle.getAttribute("aria-expanded") !== "true");
-      return;
-    }
-    var opt = e.target.closest(".option");
-    if (opt) {
-      var qCard = opt.closest(".q");
-      var list = opt.closest(".options");
-      var correctOpt = list.querySelector(".option.correct");
-      if (!correctOpt) {
-        // No answer key (unsolved/unassigned): just mark the choice.
-        var wasPicked = opt.classList.contains("picked");
-        list.querySelectorAll(".option").forEach(function (o) { o.classList.remove("picked"); });
-        if (!wasPicked) opt.classList.add("picked");
-        return;
+    var correctIdx = type === "mcq" && q.solution ? optIndex(q, q.solution.correctOption) : -1;
+    if (type === "mcq") {
+      h += '<div class="opts" role="group" aria-label="Answer options">' + q.options.map(function (o, i) {
+        var cls = "opt", res = "";
+        if (revealed) {
+          if (i === correctIdx) { cls += " right"; res = "ANSWER"; }
+          else if (i === rec.choice) { cls += " wrong"; res = "YOUR PICK"; }
+        }
+        return '<button type="button" class="' + cls + '" data-opt="' + i + '"' + (revealed || !isGradable ? " disabled" : "") + ">" +
+          '<span class="key">' + esc(o.key) + '</span><span class="txt">' + esc(o.text) + '</span><span class="res">' + res + "</span></button>";
+      }).join("") + "</div>";
+      if (revealed) {
+        if (rec.done && rec.ok) h += '<div class="verdict ok">✓ Correct</div>';
+        else if (rec.done && rec.choice >= 0) h += '<div class="verdict bad">✗ Not quite — the answer is ' + esc(q.solution.correctOption) + "</div>";
+        else h += '<div class="verdict ' + (rec.done ? "bad" : "muted") + '">' + (rec.done ? "Solution shown without picking — counted as missed" : "Not answered") + " · the answer is " + esc(q.solution.correctOption) + "</div>";
       }
-      // Grade the first pick straight away, then lock the question.
-      if (qCard.classList.contains("answered")) return;
-      opt.classList.add("picked");
-      qCard.classList.add("answered");
-      list.querySelectorAll(".option").forEach(function (o) { o.setAttribute("aria-disabled", "true"); });
-      var right = opt === correctOpt;
-      list.insertAdjacentHTML("afterend", verdictHtml(right, correctOpt.getAttribute("data-key")));
-      recordAnswer(qCard, right ? "right" : "wrong", opt.getAttribute("data-key"));
-      return;
     }
-    var noteBtn = e.target.closest(".note-btn");
-    if (noteBtn) {
-      var panel = document.getElementById(noteBtn.getAttribute("aria-controls"));
-      var open = noteBtn.getAttribute("aria-expanded") !== "true";
-      noteBtn.setAttribute("aria-expanded", open ? "true" : "false");
-      if (panel) panel.hidden = !open;
-      return;
+
+    if (!isGradable) {
+      h += '<div class="why warn"><b>' + (sectionOf(q) === UNASSIGNED ? "Why it's outside your slides:" : "Why it's unsolved:") + "</b> " +
+        esc(q.unassignedReason || q.unsolvedReason || "No solution yet.") + "</div>";
     }
-    var mark = e.target.closest("[data-mark]");
-    if (mark) {
-      var mCard = mark.closest(".q");
-      var result = mark.getAttribute("data-mark");
-      mCard.querySelectorAll("[data-mark]").forEach(function (b) {
-        var on = b === mark;
-        b.classList.toggle("chosen", on);
-        b.setAttribute("aria-pressed", on ? "true" : "false");
+
+    if (!revealed) {
+      h += '<div class="reveal">';
+      if (isGradable) h += '<button type="button" class="btn ' + (type === "mcq" ? "ghost" : "accent") + '" id="showSol">Show solution</button>';
+      h += '<button type="button" class="btn note-btn" id="noteBtn" aria-expanded="' + S.noteOpen + '">📌 Note</button>';
+      if (isGradable && type === "written") h += '<span class="label">Work it out first, then compare</span>';
+      h += "</div>";
+      if (S.noteOpen) h += whereHtml(q);
+    } else {
+      h += solutionHtml(q, rec, review);
+    }
+    h += "</article>";
+    app.innerHTML = h;
+
+    app.querySelectorAll("[data-opt]").forEach(function (b) {
+      b.addEventListener("click", function () { choose(+b.getAttribute("data-opt")); });
+    });
+    var ss = document.getElementById("showSol");
+    if (ss) ss.addEventListener("click", reveal);
+    var nb = document.getElementById("noteBtn");
+    if (nb) nb.addEventListener("click", toggleNote);
+    document.getElementById("shuffleBtn").addEventListener("click", shuffleSet);
+    app.querySelectorAll("[data-grade]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var r = saved.answers[id] || {};
+        r.done = true; r.ok = b.getAttribute("data-grade") === "1";
+        saved.answers[id] = r; persist(); renderQuiz();
       });
-      recordAnswer(mCard, result);
-      return;
-    }
-    var reset = e.target.closest("[data-reset]");
-    if (reset) {
-      var rKey = reset.getAttribute("data-reset");
-      questionsIn(rKey).forEach(function (q) { delete answers[q.id]; });
-      saveAnswers();
-      goTo(rKey, 1);
-    }
-  });
+    });
+    app.querySelectorAll("[data-jump]").forEach(function (b) {
+      b.addEventListener("click", function () { go(+b.getAttribute("data-jump")); });
+    });
 
-  function recordAnswer(card, result, picked) {
-    answers[card.id] = picked ? { result: result, picked: picked } : { result: result };
-    saveAnswers();
-    var badge = card.querySelector(".result-badge");
-    if (badge) badge.outerHTML = badgeHtml(result);
-    var line = document.getElementById("scoreLine");
-    if (line) line.innerHTML = scoreLineHtml(currentRoute().key);
+    document.getElementById("prevBtn").disabled = S.idx === 0;
+    document.getElementById("nextBtn").textContent = S.idx === n - 1 ? "Finish →" : "Next →";
+    var st = stats(S.order.map(function (x) { return byId[x]; }));
+    document.getElementById("navMid").innerHTML = '<span class="hide-sm">' + st.done + " answered · </span>" + st.ok + " correct";
   }
 
-  main.addEventListener("change", function (e) {
-    var route = currentRoute();
-    if (e.target.id === "sourceFilter") {
-      state.source = e.target.value;
-      // The question list changes, so start the section again from the top.
-      if (state.query || route.key === "overview" || route.results) render(); else goTo(route.key, 1);
-    } else if (e.target.id === "jumpTo") {
-      goTo(route.key, parseInt(e.target.value, 10));
+  function solutionHtml(q, rec, review) {
+    var s = q.solution;
+    var h = '<section class="sol" aria-label="Solution">';
+    h += '<div><h3>Answer</h3><div class="answer">' + fmt(s.answer) + "</div></div>";
+    if (s.table) h += '<div class="answer-tbl">' + tableHtml(s.table) + "</div>";
+    if (s.steps && s.steps.length) {
+      h += '<div><h3>How it is solved</h3><div class="expl"><ol>' + s.steps.map(function (x) { return "<li>" + fmt(x) + "</li>"; }).join("") + "</ol></div></div>";
     }
+    if (typeOf(q) === "written" && !review) {
+      var g = rec.ok === true ? "1" : rec.ok === false ? "0" : "";
+      h += '<div class="selfgrade"><span class="label">Did you get it?</span>' +
+        '<button type="button" class="btn ' + (g === "1" ? "accent" : "ghost") + '" data-grade="1">Yes, I got it</button>' +
+        '<button type="button" class="btn ' + (g === "0" ? "" : "ghost") + '" data-grade="0">No, review later</button></div>';
+    } else if (typeOf(q) === "written" && review) {
+      h += '<div class="verdict ' + (rec.ok === false ? "bad" : "muted") + '">' + (rec.ok === false ? "You marked this one “review later”" : "Not marked yet") + "</div>";
+    }
+    h += whereHtml(q);
+    return h + "</section>";
+  }
+
+  // "Module 3, pp.22–24 – Tangible Interfaces" → { module, pages, first, topic }
+  function parseRef(ref) {
+    var m = /^Module\s+(\d+),\s*pp?\.\s*(\d+)(?:\s*[–-]\s*(\d+))?\s*[–-]\s*(.*)$/.exec(ref);
+    if (!m) return null;
+    return { module: +m[1], first: m[2], pages: m[3] ? m[2] + "–" + m[3] : m[2], plural: !!m[3], topic: m[4] };
+  }
+  function slideItem(ref) {
+    var p = parseRef(ref);
+    if (!p) return "<li>" + esc(ref) + "</li>";
+    var c = chByNumber(p.module);
+    return '<li><span class="slideref">Module ' + p.module + (c ? " — " + esc(c.title) : "") + ", " + (p.plural ? "slides" : "slide") + " <mark>" + esc(p.pages) + "</mark></span>" +
+      '<span class="sub">' + esc(p.topic) + "</span>" +
+      (c && c.slides ? '<span class="file">' + esc(c.slides) + ' · <a href="' + esc(c.slides) + "#page=" + p.first + '" target="_blank" rel="noopener">open at slide ' + p.first + " ↗</a></span>" : "") + "</li>";
+  }
+
+  // The read-only note: slide pages and the exam the question came from.
+  function whereHtml(q) {
+    var src = source(q);
+    var h = '<div class="where" aria-label="Where this question comes from">';
+    if (q.slideRefs && q.slideRefs.length) {
+      h += '<div class="item"><span class="label">Lecture</span><ul>' + q.slideRefs.map(slideItem).join("") + "</ul></div>";
+    }
+    if (q.relatedSlides && q.relatedSlides.length) {
+      h += '<div class="item"><span class="label">Related</span><div><p class="hint">Not in your slides yet. Closest related pages:</p><ul>' +
+        q.relatedSlides.map(slideItem).join("") + "</ul></div></div>";
+    }
+    h += '<div class="item"><span class="label">Exam source</span><ul><li><b>' + esc(src.label) + "</b> — " + esc(q.ref) +
+      '<span class="file">' + esc(src.file || "") + (q.page ? " · PDF page " + q.page : "") + "</span></li></ul></div>";
+    return h + "</div>";
+  }
+
+  function choose(i) {
+    var id = S.order[S.idx], q = byId[id];
+    if (typeOf(q) !== "mcq" || !gradable(q) || S.mode === "review") return;
+    var r = saved.answers[id];
+    if (r && r.done) return;
+    saved.answers[id] = { done: true, choice: i, ok: i === optIndex(q, q.solution.correctOption) };
+    persist(); renderQuiz();
+  }
+  function reveal() {
+    var id = S.order[S.idx], q = byId[id];
+    if (!gradable(q)) return;
+    var r = saved.answers[id] || {};
+    if (r.done) return;
+    // Like the OS bank: showing an MCQ solution before picking counts as missed.
+    if (typeOf(q) === "written") { r.done = true; r.ok = null; }
+    else { r.done = true; r.choice = -1; r.ok = false; }
+    saved.answers[id] = r; persist(); renderQuiz();
+  }
+  function toggleNote() { S.noteOpen = !S.noteOpen; renderQuiz(); }
+  function shuffleSet() {
+    var cur = S.order[S.idx];
+    S.order = shuffledKeepUnsolvedLast(S.order.map(function (x) { return byId[x]; })).map(function (q) { return q.id; });
+    S.idx = 0;
+    S.noteOpen = false;
+    if (S.order[0] === cur && S.order.length > 1) { S.order.push(S.order.shift()); }
+    render();
+  }
+  function go(i) {
+    S.idx = Math.min(Math.max(i, 0), S.order.length - 1);
+    S.noteOpen = false;
+    S.view = "quiz";
+    render();
+  }
+
+  // ---------- done ----------
+  function missedIds() {
+    return S.order.filter(function (id) {
+      var q = byId[id], r = saved.answers[id];
+      return gradable(q) && !(r && r.done && r.ok === true);
+    });
+  }
+  function renderDone() {
+    navbar.hidden = true;
+    var list = S.order.map(function (x) { return byId[x]; });
+    var st = stats(list);
+    var missed = missedIds();
+    var notScored = list.length - st.total;
+    var review = S.mode === "review";
+    var h = '<section class="done"><span class="label">' + esc(chTitle(S.key)) + (review ? " · review finished" : "") + "</span>";
+    if (st.total) {
+      h += '<div class="score">' + st.ok + " / " + st.total + "</div>" +
+        '<p style="margin:0;color:var(--muted)">' + st.done + " of " + st.total + " questions answered" +
+        (st.total ? " · " + Math.round(100 * st.ok / st.total) + "% correct" : "") +
+        ". Written questions count as correct when you mark them “Yes, I got it”." +
+        (notScored ? " " + notScored + " question" + (notScored === 1 ? " has" : "s have") + " no solution yet and " + (notScored === 1 ? "isn't" : "aren't") + " scored." : "") + "</p>";
+    } else {
+      h += '<div class="score">Done</div><p style="margin:0;color:var(--muted)">These questions have no solutions yet, so there is no score.</p>';
+    }
+    h += '<div class="reveal">' +
+      (missed.length ? '<button type="button" class="btn accent" id="reviewMissed">Review my ' + missed.length + " mistake" + (missed.length === 1 ? "" : "s") + "</button>" +
+        '<button type="button" class="btn" id="retryMissed">Retry them</button>' : "") +
+      '<button type="button" class="btn ghost" id="again">Start this set again</button>' +
+      '<button type="button" class="btn ghost" id="back">All chapters</button></div>';
+    if (missed.length) {
+      h += '<div><h3 class="label" style="margin:.4rem 0 .6rem">Mistakes &amp; skipped — jump back to</h3><ul class="missed">' + missed.map(function (id) {
+        var q = byId[id], i = S.order.indexOf(id), r = saved.answers[id];
+        var why = !r || !r.done ? "not answered" : r.ok === null ? "not marked" : "missed";
+        return '<li><button type="button" data-jump="' + i + '"><span class="pos">' + (i + 1) + ".</span> " + esc(source(q).short) + " · " + esc(q.ref) +
+          ' <span class="label">· ' + why + '</span><span class="snip">' + esc(snippet(q.text, [])) + "</span></button></li>";
+      }).join("") + "</ul></div>";
+    } else if (st.total) {
+      h += '<p style="margin:0">No mistakes in this set. 🎉</p>';
+    }
+    h += "</section>";
+    app.innerHTML = h;
+
+    var rv = document.getElementById("reviewMissed");
+    if (rv) rv.addEventListener("click", function () { start(S.key, missed, "review"); });
+    var rm = document.getElementById("retryMissed");
+    if (rm) rm.addEventListener("click", function () {
+      missed.forEach(function (id) { delete saved.answers[id]; }); persist();
+      start(S.key, missed, "practice");
+    });
+    document.getElementById("again").addEventListener("click", function () {
+      S.order.forEach(function (id) { delete saved.answers[id]; }); persist();
+      start(S.key);
+    });
+    document.getElementById("back").addEventListener("click", goHome);
+    app.querySelectorAll("[data-jump]").forEach(function (b) {
+      b.addEventListener("click", function () { go(+b.getAttribute("data-jump")); });
+    });
+  }
+
+  // ---------- wiring ----------
+  function render() {
+    if (S.view === "home") renderHome();
+    else if (S.view === "quiz") renderQuiz();
+    else renderDone();
+    window.scrollTo(0, 0);
+  }
+  function goHome() { S.view = "home"; render(); }
+  function next() {
+    if (S.idx < S.order.length - 1) go(S.idx + 1);
+    else { S.view = "done"; render(); }
+  }
+
+  app.addEventListener("click", homeClick);
+  document.getElementById("homeBtn").addEventListener("click", goHome);
+  document.getElementById("prevBtn").addEventListener("click", function () { if (S.idx > 0) go(S.idx - 1); });
+  document.getElementById("nextBtn").addEventListener("click", next);
+  document.addEventListener("keydown", function (ev) {
+    if (S.view !== "quiz" || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    var tag = (ev.target && ev.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    var q = byId[S.order[S.idx]];
+    if (ev.key === "ArrowRight") { next(); ev.preventDefault(); }
+    else if (ev.key === "ArrowLeft") { if (S.idx > 0) go(S.idx - 1); ev.preventDefault(); }
+    else if (/^[1-9]$/.test(ev.key) && typeOf(q) === "mcq" && +ev.key <= q.options.length) { choose(+ev.key - 1); }
+    else if (ev.key === "Enter" && tag !== "BUTTON") { reveal(); }
+    else if (ev.key === "n" || ev.key === "N") { if (document.getElementById("noteBtn")) toggleNote(); }
   });
 
-  // ---------- mobile menu ----------
-  function openMenu() {
-    sidebar.classList.add("open");
-    scrim.hidden = false;
-    menuBtn.setAttribute("aria-expanded", "true");
-  }
-  function closeMenu() {
-    sidebar.classList.remove("open");
-    scrim.hidden = true;
-    menuBtn.setAttribute("aria-expanded", "false");
-  }
-  menuBtn.addEventListener("click", function () {
-    if (sidebar.classList.contains("open")) closeMenu(); else openMenu();
-  });
-  scrim.addEventListener("click", closeMenu);
-  nav.addEventListener("click", function (e) { if (e.target.closest("a")) closeMenu(); });
-
-  // ---------- init ----------
-  document.getElementById("courseName").textContent = DATA.course || "";
-  document.getElementById("sidebarFoot").textContent = DATA.questions.length + " questions · " + Object.keys(DATA.sources || {}).length + " exams";
   render();
 })();

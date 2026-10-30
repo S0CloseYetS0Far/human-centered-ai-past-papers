@@ -1,34 +1,39 @@
 window.STUDY_DATA = {
   "course": "CS1352 — Human Centered Intelligent Systems Design",
-  "updated": "2026-10-17",
+  "updated": "2026-10-30",
   "sources": {
     "final-2026": {
       "label": "Final Exam — 2nd Semester 2026",
       "short": "Final 2026",
+      "order": 4,
       "file": "exams/Final/Final_2nd_2026.pdf",
       "notes": "Phone photos. The PDF holds 6 of the paper's 7 pages; the printed page numbers start at 2, so only the cover page is missing. No questions appear to be lost."
     },
     "midterm-2026": {
       "label": "Midterm Exam — 2nd Semester 2026",
       "short": "Midterm 2026",
+      "order": 3,
       "file": "exams/Midterm/Midterm_2nd_2026.pdf",
       "notes": "Phone photos. The PDF holds 5 of the paper's 6 pages; printed numbering starts at \"Page 2 of 6\", so only the cover page is missing."
     },
     "quiz1-summer-2026": {
       "label": "Quiz 1 — Summer 2026",
       "short": "Quiz 1 Summer 2026",
+      "order": 5,
       "file": "exams/Quizzes/Quiz1_summer_2026.pdf",
       "notes": "Screenshots of an online quiz. Some text was cut off between screenshots: Question 1 use case 3 is missing, Question 5 item 2 ends in \"...\", and Question 5 item 3 is only partly visible."
     },
     "quiz-female-2026": {
       "label": "Quiz (Female section) — 2nd Semester 2026",
       "short": "Quiz F 2026",
+      "order": 2,
       "file": "exams/Quizzes/Quiz_Female_2nd_2026.pdf",
       "notes": "Phone photos, fully readable."
     },
     "quiz-male-2026": {
       "label": "Quiz (Male section) — 2nd Semester 2026",
       "short": "Quiz M 2026",
+      "order": 2,
       "file": "exams/Quizzes/Quiz_Male_2nd_2026.pdf",
       "notes": "Phone photos, fully readable."
     }
@@ -66,7 +71,8 @@ window.STUDY_DATA = {
         "HCAI",
         "Supertools",
         "Active appliance"
-      ]
+      ],
+      "slideCount": 43
     },
     {
       "id": "ch2",
@@ -98,7 +104,8 @@ window.STUDY_DATA = {
         "Risky autonomy",
         "PAIR",
         "Participatory design"
-      ]
+      ],
+      "slideCount": 55
     },
     {
       "id": "ch3",
@@ -131,7 +138,8 @@ window.STUDY_DATA = {
         "AR",
         "VR",
         "BCI"
-      ]
+      ],
+      "slideCount": 67
     }
   ],
   "questions": [
