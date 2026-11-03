@@ -1,6 +1,6 @@
 window.STUDY_DATA = {
   "course": "CS1352 — Human Centered Intelligent Systems Design",
-  "updated": "2026-10-30",
+  "updated": "2026-11-03",
   "sources": {
     "final-2026": {
       "label": "Final Exam — 2nd Semester 2026",
@@ -140,6 +140,44 @@ window.STUDY_DATA = {
         "BCI"
       ],
       "slideCount": 67
+    },
+    {
+      "id": "ch4",
+      "number": 4,
+      "title": "Context Awareness and Adaptive Intelligence",
+      "slides": "slides/Module4_HCAI_V2.pdf",
+      "summary": "What context is and where it comes from, how it is sensed and modelled, how adaptive and personalized systems use it, and how to handle user data and AI adaptation ethically.",
+      "topics": [
+        "Definition of context (Dey, 2001) and context sources: location, identity, activity, environment, device state, social context",
+        "Typical context-aware pipeline: Sense → Interpret → Decide → Adapt → Learn & Improve",
+        "Context sensing technologies: location, environmental, motion/activity, biometric sensors and interaction logging; sensor fusion",
+        "Technical challenges in context sensing and HCI challenges in context-aware systems",
+        "Context modeling: model-based (key-value, ontology, logic, object-oriented, spatial) vs data-driven (ML classifiers, Bayesian networks, HMMs, deep learning, RL) vs hybrid",
+        "Adaptive interfaces: implicit input and continuous adaptation",
+        "User models: demographic, behavioral, cognitive, social/collaborative",
+        "Types of adaptation: content, presentation, navigation, interaction modality, proactive assistance",
+        "Smart environments (smart home): benefits and tensions",
+        "HCAI framework for adaptive systems; supertools vs autonomous agents; trust calibration",
+        "Ethics: data ethics vs adaptation ethics, responsible data handling, five adaptation checks, fairness and reliability, ethical design checklist"
+      ],
+      "keyTerms": [
+        "Context",
+        "Sensor fusion",
+        "Key-value",
+        "Ontology",
+        "Model-based",
+        "Data-driven",
+        "Hybrid",
+        "Behavioral model",
+        "Social/Collaborative model",
+        "Content adaptation",
+        "Presentation adaptation",
+        "Proactive assistance",
+        "Supertool",
+        "Trust calibration",
+        "Data minimization"
+      ],
+      "slideCount": 43
     }
   ],
   "questions": [
@@ -497,7 +535,8 @@ window.STUDY_DATA = {
       ],
       "slideRefs": [
         "Module 2, p.29 – HCAI two-dimensional framework",
-        "Module 3, p.63 – HCAI framework applied to post-GUI"
+        "Module 3, p.63 – HCAI framework applied to post-GUI",
+        "Module 4, p.24 – HCAI framework for adaptive systems"
       ],
       "solution": {
         "correctOption": "B",
@@ -553,7 +592,8 @@ window.STUDY_DATA = {
         ]
       },
       "slideRefs": [
-        "Module 3, p.48 – Adaptive and context-aware behavior"
+        "Module 3, p.48 – Adaptive and context-aware behavior",
+        "Module 4, p.2 – Adaptive and context-aware behavior (Sense, Interpret, Adapt, Learn, recalled from Module 3)"
       ],
       "solution": {
         "answer": "1 Sense · 2 Interpret · 3 Adapt · 4 Learn · 5 Learn",
@@ -641,7 +681,8 @@ window.STUDY_DATA = {
       },
       "unsolvedReason": "The wording contradicts itself. There are 4 steps, 4 principles and 4 table rows, so using every principle at least once leaves no room for one to be used twice, unless a step gets two principles or the five actions from Part 1 are meant. The expected answer depends on what the instructor meant. Relevant slide: Module 3, p.48 (Transparency, Controllability, Predictability, Privacy).",
       "slideRefs": [
-        "Module 3, p.48 – Adaptive and context-aware behavior: Sense, Interpret, Adapt, Learn and the four HCAI principles"
+        "Module 3, p.48 – Adaptive and context-aware behavior: Sense, Interpret, Adapt, Learn and the four HCAI principles",
+        "Module 4, p.2 – Adaptive and context-aware behavior (Sense, Interpret, Adapt, Learn, recalled from Module 3)"
       ]
     },
     {
@@ -649,54 +690,81 @@ window.STUDY_DATA = {
       "source": "final-2026",
       "ref": "Q3 · Item 1",
       "page": 5,
-      "chapter": null,
+      "chapter": "ch4",
       "context": "QUESTION 3\n[CLO 1.2] – Describe how human–computer interaction principles extend to context-aware and AI-driven environments.\nShort Answers: Hint (Social/Collaborative, Behavioral) [10 marks]",
       "text": "1. An e-commerce website shows you products that say, \"People who bought this laptop also bought a wireless mouse and a laptop bag.\" You have not bought anything yet, but the site uses data from thousands of other shoppers.\nQuestion:\nWhich user model is the website using?\nAnswer:",
-      "unassignedReason": "User models (social/collaborative vs behavioral) are not covered in Modules 1–3.",
-      "relatedSlides": [
-        "Module 1, p.20 – Context types (user context: preferences, history; social context)",
-        "Module 3, p.46 – Future interfaces (behavioral signals)"
-      ]
+      "slideRefs": [
+        "Module 4, p.21 – User modeling for personalization: social/collaborative models"
+      ],
+      "solution": {
+        "answer": "**Social/Collaborative model**",
+        "steps": [
+          "Module 4 lists four user models: demographic, behavioral, cognitive and social/collaborative.",
+          "Social/Collaborative models use \"group membership, social connections, **collaborative filtering**, and peer behavior\" to inform recommendations.",
+          "\"People who bought this laptop also bought...\" is collaborative filtering. The clue is that **you have not bought anything yet**, so the site is using **other shoppers' behavior**, not your own.",
+          "It is not a behavioral model, because a behavioral model needs **your own** interaction history."
+        ]
+      }
     },
     {
       "id": "final-2026-q3-2",
       "source": "final-2026",
       "ref": "Q3 · Item 2",
       "page": 5,
-      "chapter": null,
+      "chapter": "ch4",
       "context": "QUESTION 3 · Short Answers: Hint (Social/Collaborative, Behavioral)",
       "text": "2. A news app remembers that you always read sports articles in the morning and crime news in the evening. It starts showing sports news first at 7 AM and crime news first at 8 PM.\nQuestion:\nWhich user model is the app using?\nAnswer:",
-      "unassignedReason": "User models (social/collaborative vs behavioral) are not covered in Modules 1–3.",
-      "relatedSlides": [
-        "Module 1, p.20 – Context types (user context: preferences, history, activity)",
-        "Module 3, p.46 – Future interfaces (behavioral signals: habits, preferences)"
-      ]
+      "slideRefs": [
+        "Module 4, p.21 – User modeling for personalization: behavioral models"
+      ],
+      "solution": {
+        "answer": "**Behavioral model**",
+        "steps": [
+          "Behavioral models use \"interaction history, click patterns, dwell time, search queries, and navigation paths\" to reveal **implicit preferences and habits**.",
+          "The app learns from **your own reading history** (sports in the morning, crime news in the evening) and reorders the news to match that habit.",
+          "It is not social/collaborative, because no data from other users is involved."
+        ]
+      }
     },
     {
       "id": "final-2026-q3-3",
       "source": "final-2026",
       "ref": "Q3 · Item 3",
       "page": 5,
-      "chapter": null,
+      "chapter": "ch4",
       "context": "QUESTION 3 · Short Answers",
       "text": "3. A smart home system represents the current context as:\n\"location=living room\", \"time=evening\", \"occupancy=2 people\", \"temperature=22°C\".\nIt uses simple pairs of attributes and values to store this information.\nQuestion:\nWhich model-based approach is being used?\nAnswer:",
-      "unassignedReason": "Context-modeling approaches (e.g. attribute–value / key-value models) are not covered in Modules 1–3.",
-      "relatedSlides": [
-        "Module 1, p.20 – Context-aware systems and context types"
-      ]
+      "slideRefs": [
+        "Module 4, p.14 – Context modeling approaches: key-value pairs"
+      ],
+      "solution": {
+        "answer": "**Key-value pairs** (key-value model)",
+        "steps": [
+          "Model-based approaches in Module 4: key-value pairs, ontology models, logic-based models, object-oriented models and spatial models.",
+          "Key-value pairs are \"the simplest form, attributes mapped to values (e.g., location = office)\".",
+          "\"location=living room\", \"time=evening\", \"occupancy=2 people\", \"temperature=22°C\" are exactly attribute=value pairs, and the question itself says \"simple pairs of attributes and values\"."
+        ]
+      }
     },
     {
       "id": "final-2026-q3-4",
       "source": "final-2026",
       "ref": "Q3 · Item 4",
       "page": 5,
-      "chapter": null,
+      "chapter": "ch4",
       "context": "QUESTION 3 · Short Answers",
       "text": "4. A museum guide app defines classes such as Room, Exhibit, Visitor, and Sensor. Each room contains exhibits, and each visitor has a current location. The system uses relationships like \"Room contains Exhibit\" and \"Visitor isLocatedIn Room\".\nQuestion:\nWhich model-based approach is being used?\nAnswer:",
-      "unassignedReason": "Context-modeling approaches (e.g. ontology-based models with classes and relationships) are not covered in Modules 1–3.",
-      "relatedSlides": [
-        "Module 1, p.20 – Context-aware systems and context types"
-      ]
+      "slideRefs": [
+        "Module 4, p.14 – Context modeling approaches: ontology models"
+      ],
+      "solution": {
+        "answer": "**Ontology model** (ontology-based model)",
+        "steps": [
+          "Ontology models are \"formal vocabularies defining **context types and relationships** (OWL-based)\".",
+          "Room, Exhibit, Visitor and Sensor are the context types (classes). \"Room contains Exhibit\" and \"Visitor isLocatedIn Room\" are named **relationships** between them.",
+          "Not object-oriented: that model is about encapsulating entities with attributes and **inheritance**, which the scenario does not mention. Not spatial: that model represents geometric relationships and proximity, while here the relationships are named facts."
+        ]
+      }
     },
     {
       "id": "final-2026-q3-5",
@@ -781,11 +849,12 @@ window.STUDY_DATA = {
           ]
         ]
       },
-      "unassignedReason": "Evaluation techniques for AI systems (analytics, field studies, bias audits, alongside heuristic evaluation, usability testing and A/B testing) are not taught as a topic in Modules 1–3. This looks like a later evaluation module (CLO 2.3).",
+      "unassignedReason": "Evaluation techniques for AI systems (analytics, field studies, bias audits, alongside heuristic evaluation, usability testing and A/B testing) are not taught as a topic in Modules 1–4. This looks like a later evaluation module (CLO 2.3).",
       "relatedSlides": [
         "Module 3, p.61 – Evaluating post-GUI interfaces (heuristic evaluation)",
         "Module 2, p.19 – A/B testing with live recommendations",
-        "Module 2, p.20 – Testing AI systems: trust, fairness and bias"
+        "Module 2, p.20 – Testing AI systems: trust, fairness and bias",
+        "Module 4, p.36 – Fairness and reliability in context inference (test diverse users)"
       ]
     },
     {
@@ -1025,10 +1094,12 @@ window.STUDY_DATA = {
           ]
         ]
       },
-      "unassignedReason": "Two of the six terms, local explanations and interactive exploration, are explainable-AI concepts that are not in Modules 1–3. (Privacy, controllability and transparency do appear in Module 3, p.48.) This probably belongs to a later chapter on explainability and ethics.",
+      "unassignedReason": "Two of the six terms, local explanations and interactive exploration, are explainable-AI concepts that are not in Modules 1–4. (Privacy, controllability and transparency appear in Module 3, p.48 and Module 4, pp.2 and 28; Module 4, p.35 covers explainability only in general.) This probably belongs to a later chapter on explainability and ethics.",
       "relatedSlides": [
         "Module 3, p.48 – HCAI principles: transparency, controllability, predictability, privacy",
-        "Module 2, p.26 – Ethical requirements: privacy, fairness, transparency, accountability"
+        "Module 2, p.26 – Ethical requirements: privacy, fairness, transparency, accountability",
+        "Module 4, p.28 – Ethical principles for HCAI systems",
+        "Module 4, p.35 – Explainability and user control"
       ]
     },
     {
@@ -1214,7 +1285,9 @@ window.STUDY_DATA = {
       "slideRefs": [
         "Module 3, p.48 – Adaptive and context-aware behavior",
         "Module 1, p.20 – Context types",
-        "Module 3, p.34 – Ambient interfaces: proactive, adaptive"
+        "Module 3, p.34 – Ambient interfaces: proactive, adaptive",
+        "Module 4, p.6 – Context sources (activity)",
+        "Module 4, p.11 – Motion and activity sensors (accelerometers)"
       ],
       "solution": {
         "answer": "It is **context-aware** because it senses the user's situation, and **adaptive** because it changes its own behavior (the playlist) automatically, without user input. The two context signals are **motion/activity from the phone's accelerometer** and **location**.",
@@ -1493,7 +1566,7 @@ window.STUDY_DATA = {
       "source": "quiz-female-2026",
       "ref": "Q1 · Item 4",
       "page": 1,
-      "chapter": "ch3",
+      "chapter": "ch4",
       "context": "Question 1 · multiple choice",
       "text": "What is the correct order of the stages in the Context-Awareness Pipeline?",
       "options": [
@@ -1511,13 +1584,16 @@ window.STUDY_DATA = {
         }
       ],
       "slideRefs": [
+        "Module 4, p.10 – Typical context-aware system pipeline",
+        "Module 4, p.2 – Adaptive and context-aware behavior: Sense, Interpret, Adapt, Learn",
         "Module 3, p.48 – Adaptive and context-aware behavior"
       ],
       "solution": {
         "correctOption": "C",
         "answer": "C — Sense → Interpret → Adapt → Learn.",
         "steps": [
-          "Module 3's adaptive and context-aware behavior steps: (1) **Sense**: gather data. (2) **Interpret**: understand context and intent. (3) **Adapt**: modify behavior. (4) **Learn**: refine over time.",
+          "The term \"pipeline\" comes from Module 4 (\"Typical Context-Aware System Pipeline\"). Its four core steps are on Module 4, p.2, recalled from Module 3: (1) **Sense**: gather data. (2) **Interpret**: understand context and intent. (3) **Adapt**: modify behavior. (4) **Learn**: refine over time.",
+          "Module 4, p.10 also shows a **Decide** stage between Interpret and Adapt, but Decide is not among the options. Of the three orders given, only C keeps Sense → Interpret → Adapt → Learn in that order.",
           "Logic check: you can't interpret before sensing, and you shouldn't adapt before interpreting."
         ]
       }
@@ -1527,7 +1603,7 @@ window.STUDY_DATA = {
       "source": "quiz-female-2026",
       "ref": "Q1 · Item 5",
       "page": 1,
-      "chapter": "ch2",
+      "chapter": "ch4",
       "context": "Question 1 · multiple choice",
       "text": "According to Shneiderman's two-dimensional HCAI framework for adaptive systems, where does the ideal HCAI goal sit?",
       "options": [
@@ -1545,14 +1621,17 @@ window.STUDY_DATA = {
         }
       ],
       "slideRefs": [
+        "Module 4, p.24 – HCAI framework for adaptive systems",
         "Module 2, p.29 – HCAI two-dimensional framework"
       ],
       "solution": {
         "correctOption": "C",
         "answer": "C — High Human Control + High Computer Automation.",
         "steps": [
-          "The framework's four quadrants: Manual work (high control, low automation), **HCAI goal (high control, high automation)**, Poor outcomes (low, low), Risky autonomy (low control, high automation).",
-          "A is \"poor outcomes\" and B is \"manual work\"."
+          "\"Two-dimensional HCAI framework for adaptive systems\" is the title of Module 4, p.24 (first introduced in Module 2, p.29).",
+          "The four quadrants: Manual operation (high control, low automation), **HCAI goal (high control, high automation)**, Poor outcomes (low, low), Risky autonomy (low control, high automation).",
+          "Module 4's examples: HCAI goal = \"Nest + user override\", \"Adaptive with user control\". Risky autonomy = \"Fully autonomous smart home, no override capability\".",
+          "A is \"poor outcomes\" and B is \"manual operation\"."
         ]
       }
     },
@@ -1614,7 +1693,9 @@ window.STUDY_DATA = {
       "context": "Question 2 · short answer",
       "text": "c. Define a context-aware system in one sentence, and give an example of context that such a system might use.",
       "slideRefs": [
-        "Module 1, p.20 – Context-aware systems"
+        "Module 1, p.20 – Context-aware systems",
+        "Module 4, p.5 – What is context? (Dey, 2001)",
+        "Module 4, p.6 – Context sources"
       ],
       "solution": {
         "answer": "A context-aware system is a system that **adapts its behavior based on situational information** about the user and their surroundings. Example of context: the user's **location** (physical context), such as a phone switching to vibrate in a meeting or GPS navigation adapting to your route.",
@@ -1790,7 +1871,7 @@ window.STUDY_DATA = {
       "ref": "Q2 · Part A",
       "page": 2,
       "marks": "2 marks",
-      "chapter": null,
+      "chapter": "ch4",
       "context": "QUESTION 2-CLO:2.1 & PLO:S1: [5 MARKS]",
       "text": "Part A: For each of the following adaptive system scenarios, identify whether the context modeling approach is model-based or data-driven.",
       "table": {
@@ -1809,11 +1890,35 @@ window.STUDY_DATA = {
           ]
         ]
       },
-      "unassignedReason": "Context-modeling approaches (model-based vs data-driven) are not covered in Modules 1–3.",
-      "relatedSlides": [
-        "Module 3, p.48 – Adaptive and context-aware behavior",
-        "Module 1, p.20 – Context types"
-      ]
+      "slideRefs": [
+        "Module 4, p.13 – Context modeling approaches: model-based vs data-driven",
+        "Module 4, p.16 – Model-based, data-driven and hybrid examples"
+      ],
+      "solution": {
+        "answer": "Smart museum app → **Data-driven** · Hospital ward dashboard → **Model-based**",
+        "table": {
+          "headers": [
+            "Scenario",
+            "Approach"
+          ],
+          "rows": [
+            [
+              "Smart museum app (predicts what to show from patterns across many previous visitors)",
+              "**Data-driven**"
+            ],
+            [
+              "Hospital adaptive ward dashboard (predefined structure, explicit rules, explainable)",
+              "**Model-based**"
+            ]
+          ]
+        },
+        "steps": [
+          "Model-based: \"represent context using **predefined structures, relationships, or rules**\", built from human-defined knowledge, and \"generally easier to explain\".",
+          "Data-driven: \"**learn contextual patterns from data**\" (historical data and sensor observations) using ML.",
+          "Museum: the deciding phrase is \"predicts what content to show next from **patterns collected across many previous visitors**\", which is learning from historical data, so **data-driven**. Age, language and location are only the context inputs.",
+          "Hospital: \"predefined structure\", \"explicit rules\" and \"the designer can explain why each interface change happens\" match all three model-based traits, so **model-based**."
+        ]
+      }
     },
     {
       "id": "quiz-male-2026-q2b",
@@ -1821,14 +1926,21 @@ window.STUDY_DATA = {
       "ref": "Q2 · Part B",
       "page": 2,
       "marks": "3 marks",
-      "chapter": null,
+      "chapter": "ch4",
       "context": "QUESTION 2-CLO:2.1 & PLO:S1: [5 MARKS]",
       "text": "Part B: For each of the following examples, identify the type of adaptation used in the AI system.\n1. An online learning app recommends a chapter about \"loops\" because the student has not studied it yet.\n2. A news app changes its layout from a full desktop view to a simple vertical view when opened on a phone.\n3. A navigation app automatically suggests the fastest route home before the user even searches for directions.\nInstructions:\nWrite the correct type of adaptation for each example.\n1. ............\n2. ............\n3. ............",
-      "unassignedReason": "A classification of adaptation types is not covered in Modules 1–3. Module 3 only teaches the Sense–Interpret–Adapt–Learn cycle.",
-      "relatedSlides": [
-        "Module 3, p.48 – Adaptive and context-aware behavior (the Adapt step)",
-        "Module 3, p.34 – Ambient interfaces: proactive and adaptive"
-      ]
+      "slideRefs": [
+        "Module 4, p.22 – Types of adaptation in AI systems"
+      ],
+      "solution": {
+        "answer": "1 **Content adaptation** · 2 **Presentation adaptation** · 3 **Proactive assistance**",
+        "steps": [
+          "Module 4's five types of adaptation: content, presentation, navigation, interaction modality and proactive assistance.",
+          "1. Recommending the \"loops\" chapter changes **what information is shown** based on the learner's progress (current task), so **content adaptation**.",
+          "2. Switching from a full desktop layout to a simple vertical view on a phone changes **how the information appears**. The slide lists \"layout changes for device context\" under **presentation adaptation**.",
+          "3. Suggesting the fastest route home **before the user searches** is \"anticipating user needs and offering help before explicit requests\", so **proactive assistance**."
+        ]
+      }
     }
   ]
 };
