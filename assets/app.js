@@ -224,6 +224,8 @@
 
   function homeClick(e) {
     if (S.view !== "home") return;
+    var pb = e.target.closest("[data-print]");
+    if (pb) { location.hash = "print=" + encodeURIComponent(pb.getAttribute("data-print")); return; }
     var card = e.target.closest("[data-ch]");
     if (card && !card.disabled) { start(card.getAttribute("data-ch")); return; }
     var hit = e.target.closest("[data-open]");
@@ -277,10 +279,13 @@
       num = c.number; title = c.title;
       meta = list.length + " question" + (list.length === 1 ? "" : "s") + (c.slideCount ? " · " + c.slideCount + " slides" : "");
     }
-    return '<button type="button" class="ch' + (key === ALL || key === EVERY ? " all" : "") + '" data-ch="' + esc(key) + '"' + (list.length ? "" : " disabled") + ">" +
+    var wide = key === ALL || key === EVERY;
+    return '<div class="chw' + (wide ? " all" : "") + '"><button type="button" class="ch' + (wide ? " all" : "") + '" data-ch="' + esc(key) + '"' + (list.length ? "" : " disabled") + ">" +
       '<span class="num">' + num + '</span><span class="t">' + esc(title) + "</span>" +
       '<span class="meta">' + esc(meta) + (st.done ? " · " + st.done + " done · " + st.ok + " correct" : "") + "</span>" +
-      '<span class="bar" aria-hidden="true"><span style="width:' + pct + '%"></span></span></button>';
+      '<span class="bar" aria-hidden="true"><span style="width:' + pct + '%"></span></span></button>' +
+      (all.length ? '<button type="button" class="pbtn" data-print="' + esc(key) + '" aria-label="Print ' + esc(title) + ' as a paper exam">⎙ Print</button>' : "") +
+      "</div>";
   }
 
   function searchResults(qs) {
@@ -583,5 +588,168 @@
     else if (ev.key === "n" || ev.key === "N") { if (document.getElementById("noteBtn")) toggleNote(); }
   });
 
+  // ---------- printable paper exam ----------
+  // "#print=<key>" shows an on-screen preview of the set as a paper exam; the
+  // print stylesheet (styles.css, @media print) prints only that sheet.
+  var printRoot = document.createElement("div");
+  printRoot.id = "printRoot";
+  printRoot.hidden = true;
+  document.body.appendChild(printRoot);
+  var baseTitle = document.title;
+
+  // Answer prompts that appear inside question text ("Answer:", "Rule:", "Explain: ....").
+  var FIELD = /^(answer|explain|rule|principle|industry|how ai shapes it|requirement attribute|key characteristic\(s\)|interaction style|term|approach)$/i;
+  var LINE_FIELD = /^(rule|principle|requirement attribute|industry|interaction style|key characteristic\(s\)|term|approach)$/i;
+
+  function marksOf(q) {
+    if (q.marks) return q.marks.replace(/points?/i, function (p) { return p.toLowerCase(); });
+    // Every multiple-choice block in these papers is worth 1 mark per item.
+    return typeOf(q) === "mcq" ? "1 mark" : "";
+  }
+  function hintOf(q) {
+    var m = /Hint\s*\(([^)]*)\)/.exec(q.context || "");
+    return m ? m[1] : "";
+  }
+  function boxCm(q, label) {
+    var t = q.text, m = parseInt(q.marks, 10) || 0;
+    if (label) {
+      if (LINE_FIELD.test(label) || /^\d+\.$/.test(label)) return 1;
+      if (/explain|how ai shapes/i.test(label)) return 2.4;
+      return /why|explain|what makes|name two|better|difference/i.test(t) ? 3.2 : 1.3;
+    }
+    if (/difference|mention two|explain|justify/i.test(t)) return 5.5;
+    if (/list two|name two|define|one sentence/i.test(t)) return 3.4;
+    return Math.min(7, 2 + m * 1.2);
+  }
+  function fieldHtml(q, label) {
+    var cm = boxCm(q, label);
+    return '<div class="pfield' + (cm <= 1.3 ? " inline" : "") + '"><span class="pl">' + esc(label) + (/\.$/.test(label) ? "" : ":") +
+      '</span><span class="pbox" style="height:' + cm + 'cm"></span></div>';
+  }
+  // Question text, with "Answer:", "Rule: ...." style prompts turned into answer boxes.
+  function printText(q) {
+    var out = "", para = [], fields = 0;
+    function flush() { if (para.length) out += '<p class="ptxt">' + fmt(para.join("\n")) + "</p>"; para = []; }
+    q.text.split("\n").forEach(function (line) {
+      var s = line.trim();
+      var num = /^(\d+\.)\s*(\.{3,}|…+)\s*$/.exec(s);
+      var lab = /^([^:]{1,40}?):\s*(\.{3,}|…+)?\s*$/.exec(s);
+      if (num) { flush(); out += fieldHtml(q, num[1]); fields++; }
+      else if (lab && FIELD.test(lab[1])) { flush(); out += fieldHtml(q, lab[1]); fields++; }
+      else if (!s) { flush(); }
+      else para.push(line);
+    });
+    flush();
+    return { html: out, fields: fields };
+  }
+  function printTable(t, key) {
+    return '<table class="ptbl' + (key ? " key" : "") + '"><thead><tr>' + t.headers.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") +
+      "</tr></thead><tbody>" + (t.rows || []).map(function (r) {
+        return "<tr>" + r.map(function (c) { return c === "" ? '<td class="blank"></td>' : "<td>" + fmt(c) + "</td>"; }).join("") + "</tr>";
+      }).join("") + "</tbody></table>";
+  }
+  function printQuestion(q, n) {
+    var mk = marksOf(q), h = '<section class="pq ' + typeOf(q) + '"><div class="pqh"><b>' + n + ".</b>" +
+      (mk ? ' <span class="pmk">[' + esc(mk) + "]</span>" : "") +
+      ' <span class="psrc">' + esc(source(q).short + " · " + q.ref) + "</span></div>";
+    var hint = hintOf(q);
+    if (hint) h += '<p class="phint"><i>Hint: ' + esc(hint) + "</i></p>";
+    var body = printText(q);
+    h += body.html;
+    if (typeOf(q) === "mcq") {
+      h += '<ol class="popts">' + q.options.map(function (o) {
+        return '<li><span class="pc" aria-hidden="true"></span><b>' + esc(o.key) + ".</b> " + fmt(o.text) + "</li>";
+      }).join("") + "</ol>";
+    } else if (q.table) {
+      h += printTable(q.table);
+    } else if (!body.fields) {
+      h += '<div class="pfield"><span class="pbox" style="height:' + boxCm(q) + 'cm"></span></div>';
+    }
+    if (q.notes) h += '<p class="pnote"><i>Note: ' + esc(q.notes) + "</i></p>";
+    return h + "</section>";
+  }
+  function keyHtml(mcq, written, startW) {
+    var h = "";
+    if (mcq.length) {
+      h += '<h3 class="psec">Multiple choice</h3>';
+      for (var i = 0; i < mcq.length; i += 10) {
+        var row = mcq.slice(i, i + 10);
+        h += '<table class="pgrid"><tr>' + row.map(function (q, j) { return "<th>" + (i + j + 1) + "</th>"; }).join("") +
+          "</tr><tr>" + row.map(function (q) { return "<td>" + esc(q.solution ? q.solution.correctOption : "–") + "</td>"; }).join("") + "</tr></table>";
+      }
+    }
+    if (written.length) {
+      h += '<h3 class="psec">Written questions</h3>';
+      written.forEach(function (q, j) {
+        var s = q.solution;
+        h += '<div class="pk"><b>' + (startW + j) + ".</b> " +
+          (s ? fmt(s.answer) + (s.table ? printTable(s.table, true) : "") : "<i>No worked answer yet.</i>") + "</div>";
+      });
+    }
+    return h;
+  }
+  function printSheet(key) {
+    var list = questionsIn(key);
+    if (!list.length) return "";
+    var ord = isExam(key) ? list.slice().sort(function (a, b) { return a._i - b._i; }) : ordered(list);
+    var mcq = ord.filter(function (q) { return typeOf(q) === "mcq"; });
+    var written = ord.filter(function (q) { return typeOf(q) !== "mcq"; });
+    var title = chById[key] ? "Chapter " + chById[key].number + ": " + chById[key].title : chTitle(key);
+    var srcs = [];
+    ord.forEach(function (q) { var s = source(q).short; if (srcs.indexOf(s) < 0) srcs.push(s); });
+
+    var h = '<article class="psheet">' +
+      '<header class="phead"><div class="pcourse">' + esc(D.course) + "</div>" +
+      '<div class="ptitle">' + (isExam(key) ? "" : "Practice Exam — ") + esc(title) + "</div>" +
+      '<div class="pmeta">' + ord.length + " questions" + (mcq.length ? " · Section A: " + mcq.length + " multiple choice" : "") +
+      (written.length ? " · Section " + (mcq.length ? "B" : "A") + ": " + written.length + " written" : "") +
+      " · From: " + esc(srcs.join(", ")) + "</div>" +
+      '<table class="pid"><tr><th>Name:</th><td></td></tr><tr><th>Student ID:</th><td></td></tr><tr><th>Date:</th><td></td></tr></table>' +
+      '<p class="pinstr"><b>Instructions:</b> Answer all questions. For multiple choice, fill in one circle only. ' +
+      "Write written answers inside the boxes or table cells provided. Marks are shown where the original paper gives them.</p></header>";
+    var n = 1;
+    if (mcq.length) {
+      h += '<h2 class="psec"><span>Section A</span> Multiple Choice</h2><p class="pinstr">Choose the correct answer for each item. Only one choice is accepted.</p>';
+      mcq.forEach(function (q) { h += printQuestion(q, n++); });
+    }
+    if (written.length) {
+      h += '<h2 class="psec"><span>Section ' + (mcq.length ? "B" : "A") + "</span> Written Questions</h2>";
+      written.forEach(function (q) { h += printQuestion(q, n++); });
+    }
+    h += '<p class="pend">— End of questions —</p></article>';
+    h += '<article class="psheet pkey"><header class="phead"><div class="pcourse">' + esc(D.course) + "</div>" +
+      '<div class="ptitle">Answer Key — ' + esc(title) + "</div></header>" + keyHtml(mcq, written, mcq.length + 1) + "</article>";
+    return h;
+  }
+
+  function showPrint(key) {
+    var sheet = printSheet(key);
+    if (!sheet) { location.hash = ""; return; }
+    printRoot.innerHTML = '<div class="ptools"><button type="button" class="btn ghost" id="pBack">← Back</button>' +
+      '<span class="label">Print preview · A4</span><button type="button" class="btn" id="pGo">⎙ Print / Save as PDF</button></div>' + sheet;
+    printRoot.hidden = false;
+    document.body.classList.add("printview");
+    navbar.hidden = true;
+    var c = chById[key];
+    document.title = "HCAI " + (c ? "Chapter " + c.number : chTitle(key)) + " - Practice Exam";
+    document.getElementById("pBack").addEventListener("click", function () { location.hash = ""; });
+    document.getElementById("pGo").addEventListener("click", function () { window.print(); });
+    window.scrollTo(0, 0);
+  }
+  function hidePrint() {
+    if (printRoot.hidden) return;
+    printRoot.hidden = true;
+    printRoot.innerHTML = "";
+    document.body.classList.remove("printview");
+    document.title = baseTitle;
+    render();
+  }
+  function route() {
+    var m = /^#print=(.+)$/.exec(location.hash);
+    if (m) showPrint(decodeURIComponent(m[1])); else hidePrint();
+  }
+  window.addEventListener("hashchange", route);
+
   render();
+  route();
 })();
