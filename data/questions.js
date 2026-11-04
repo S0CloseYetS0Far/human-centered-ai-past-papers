@@ -679,11 +679,49 @@ window.STUDY_DATA = {
           ]
         ]
       },
-      "unsolvedReason": "The wording contradicts itself. There are 4 steps, 4 principles and 4 table rows, so using every principle at least once leaves no room for one to be used twice, unless a step gets two principles or the five actions from Part 1 are meant. The expected answer depends on what the instructor meant. Relevant slide: Module 3, p.48 (Transparency, Controllability, Predictability, Privacy).",
       "slideRefs": [
         "Module 3, p.48 – Adaptive and context-aware behavior: Sense, Interpret, Adapt, Learn and the four HCAI principles",
         "Module 4, p.2 – Adaptive and context-aware behavior (Sense, Interpret, Adapt, Learn, recalled from Module 3)"
-      ]
+      ],
+      "solution": {
+        "answer": "Sense → **Privacy** · Interpret → **Transparency** · Adapt → **Controllability** · Learn → **Predictability** + **Controllability**. The principle used twice is **Controllability** (Adapt and Learn).",
+        "table": {
+          "headers": [
+            "Step",
+            "Chosen Principle",
+            "Why it matters (one sentence)"
+          ],
+          "rows": [
+            [
+              "Sense",
+              "Privacy",
+              "The app collects data such as speed, engine noise and listening habits, so this sensing must respect the driver's consent and protect their data."
+            ],
+            [
+              "Interpret",
+              "Transparency",
+              "The driver should understand WHAT the app concluded (\"you may not hear soft music on the highway\") and WHY, before it changes anything."
+            ],
+            [
+              "Adapt",
+              "Controllability",
+              "The driver must be able to override, adjust or disable the automatic volume and playlist changes at any time, because the driver must stay in control for safety."
+            ],
+            [
+              "Learn",
+              "Predictability + Controllability (used twice)",
+              "What the app learns should make its future behavior consistent and easy to anticipate, and the driver should control what it learns (for example, turning off highway mode so it stops auto-adjusting)."
+            ]
+          ]
+        },
+        "steps": [
+          "The four HCAI design principles for adaptive systems (Module 3, p.48 / Module 4, p.2). **Transparency**: users understand WHAT the system is adapting and WHY. **Controllability**: users can override, adjust or disable adaptive behaviors at any time. **Predictability**: adaptive changes are consistent and comprehensible. **Privacy**: sensing and data collection respect consent and data protection.",
+          "Give each step the principle that fits it best. **Sense** is where data is collected, so **Privacy**. **Interpret** is where the system reaches a conclusion the user must be able to understand, so **Transparency**. **Adapt** is where the system changes things on its own, so the driver must be able to override it: **Controllability**. **Learn** changes future behavior over time, so it must stay consistent: **Predictability**.",
+          "That uses all four principles once. To use one principle twice, as the question asks, give one step a second principle. **Controllability** fits Learn too: Part 1, action 4 lets the driver turn off highway mode, and action 5 stops auto-adjusting for drivers who prefer manual control. So the doubled principle is **Controllability** (Adapt and Learn).",
+          "Write the doubled principle clearly in your answer, for example: \"Controllability is applied twice: at Adapt and at Learn.\"",
+          "Other reasonable answers can earn marks too, as long as all four principles appear and you state which one is used twice. For example, Transparency could also be the second principle at Adapt (explain each change as it happens)."
+        ]
+      }
     },
     {
       "id": "final-2026-q3-1",
