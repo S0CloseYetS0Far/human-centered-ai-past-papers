@@ -12,6 +12,8 @@
   var STORE = "hcai-bank-v2";
   var ALL = "all";
   var UNASSIGNED = "unassigned";
+  var EVERY = "every";      // every question from every exam
+  var EXAM = "exam:";       // prefix for a single exam's set, e.g. "exam:final-2026"
   var TYPE_LABEL = { mcq: "Multiple choice", written: "Written" };
 
   // ---------- helpers ----------
@@ -45,8 +47,16 @@
 
   function sectionOf(q) { return q.chapter && chById[q.chapter] ? q.chapter : UNASSIGNED; }
   function typeOf(q) { return q.options && q.options.length ? "mcq" : "written"; }
-  function gradable(q) { return sectionOf(q) !== UNASSIGNED && !!q.solution; }
+  function gradable(q) { return !!q.solution; }
   function source(q) { return (D.sources && D.sources[q.source]) || { label: q.source, short: q.source, order: 0 }; }
+  function isExam(key) { return typeof key === "string" && key.indexOf(EXAM) === 0; }
+  function examOf(key) { return D.sources[key.slice(EXAM.length)]; }
+
+  // Newest exam first; exams with the same order keep their file order.
+  var examIds = Object.keys(D.sources || {}).sort(function (a, b) {
+    return (D.sources[b].order || 0) - (D.sources[a].order || 0);
+  });
+  function examKind(s) { return /final/i.test(s.label) ? "F" : /midterm/i.test(s.label) ? "M" : "Q"; }
   function optIndex(q, key) { for (var i = 0; i < q.options.length; i++) if (q.options[i].key === key) return i; return -1; }
 
   // Newest exam first, keeping the paper's own question order within an exam.
@@ -68,13 +78,16 @@
   function chTitle(key) {
     if (key === ALL) return "All chapters";
     if (key === UNASSIGNED) return "Topics outside your slides";
+    if (key === EVERY) return "All exams";
+    if (isExam(key)) return examOf(key).label;
     var c = chById[key];
     return "Chapter " + c.number + " · " + c.title;
   }
 
   // ---------- saved state (this browser only) ----------
   // answers[id] = { done: true, ok: true | false | null, choice: index (MCQ, -1 = revealed without picking) }
-  var saved = { answers: {}, shuffle: false, types: ["mcq", "written"] };
+  // by: "chapter" (lecture chapters) or "exam" (one exam at a time) on the home screen
+  var saved = { answers: {}, shuffle: false, types: ["mcq", "written"], by: "chapter" };
   try {
     var raw = localStorage.getItem(STORE);
     if (raw) saved = Object.assign(saved, JSON.parse(raw));
@@ -113,6 +126,8 @@
   // ---------- question sets ----------
   function questionsIn(key) {
     if (key === ALL) return D.questions.filter(function (q) { return sectionOf(q) !== UNASSIGNED; });
+    if (key === EVERY) return D.questions.slice();
+    if (isExam(key)) { var sid = key.slice(EXAM.length); return D.questions.filter(function (q) { return q.source === sid; }); }
     return D.questions.filter(function (q) { return sectionOf(q) === key; });
   }
   function poolFor(key) {
@@ -152,13 +167,17 @@
     navbar.hidden = true;
     var st = stats(D.questions);
     var solvedCount = D.questions.filter(gradable).length;
-    var h = '<section class="hero"><span class="label">Past exam questions sorted by lecture chapter</span>' +
-      "<h1>Practice every past HCAI exam question, chapter by chapter.</h1>" +
-      "<p>Each question is solved and explained, with the exam it came from and the slide pages it is based on. Pick a chapter, answer one question at a time, and use Next to move on.</p>" +
+    var h = '<section class="hero"><span class="label">Past exam questions by lecture chapter or by exam</span>' +
+      "<h1>Practice every past HCAI exam question, chapter by chapter or exam by exam.</h1>" +
+      "<p>Each question is solved and explained, with the exam it came from and the slide pages it is based on. Pick a chapter or a single exam, answer one question at a time, and use Next to move on.</p>" +
       '<div class="stats"><span><b>' + D.questions.length + "</b> questions</span><span><b>" + solvedCount + "</b> solved</span><span><b>" +
       Object.keys(D.sources).length + "</b> exams &amp; quizzes</span><span><b>" + st.done + "</b> answered · <b>" + st.ok + "</b> correct</span></div></section>";
 
     h += '<section class="controls" aria-label="Practice settings">' +
+      '<div class="ctl-row"><span class="label">Practice by</span>' +
+      [["chapter", "Lecture chapters"], ["exam", "Exams"]].map(function (v) {
+        return '<button type="button" class="chip" data-by="' + v[0] + '" aria-pressed="' + (saved.by === v[0]) + '">' + v[1] + "</button>";
+      }).join("") + "</div>" +
       '<div class="ctl-row"><span class="label">Order</span>' +
       '<button type="button" class="switch" id="shuffleSw" role="switch" aria-checked="' + (saved.shuffle ? "true" : "false") + '"><i></i>Shuffle questions</button>' +
       '<span class="label">' + (saved.shuffle ? "random order" : "newest exam first") + "</span></div>" +
@@ -186,6 +205,9 @@
     if (ry) ry.addEventListener("click", function () { saved.answers = {}; resetArmed = false; persist(); renderHome(); });
     var rn = document.getElementById("resetNo");
     if (rn) rn.addEventListener("click", function () { resetArmed = false; renderHome(); });
+    app.querySelectorAll("[data-by]").forEach(function (b) {
+      b.addEventListener("click", function () { saved.by = b.getAttribute("data-by"); persist(); renderHome(); });
+    });
     app.querySelectorAll("[data-type]").forEach(function (b) {
       b.addEventListener("click", function () {
         var t = b.getAttribute("data-type"), i = saved.types.indexOf(t);
@@ -207,7 +229,7 @@
     var hit = e.target.closest("[data-open]");
     if (hit) {
       var q = byId[hit.getAttribute("data-open")];
-      var key = sectionOf(q);
+      var key = saved.by === "exam" ? EXAM + q.source : sectionOf(q);
       var pool = poolFor(key).map(function (x) { return x.id; });
       if (pool.indexOf(q.id) >= 0) start(key, null, "practice", q.id);
       else start(key, [q.id]);
@@ -216,16 +238,24 @@
 
   function homeBody() {
     if (query.length >= 2) return searchResults(query);
+    if (saved.by === "exam") return examsBody();
     var h = '<div class="group-title"><h2>Lecture chapters</h2><span class="label">' + chapters.length + " decks</span></div><div class=\"grid\">";
     h += chapterCard(ALL);
     chapters.forEach(function (c) { h += chapterCard(c.id); });
     h += "</div>";
     if (questionsIn(UNASSIGNED).length) {
-      h += '<div class="group-title"><h2>Topics outside your slides</h2><span class="label">no solutions yet</span></div>' +
-        '<p class="note" style="margin-top:0">These exam questions cover topics that are not in Modules 1–' + chapters.length + '. They will move into a chapter when its slides are added.</p><div class="grid">' +
+      h += '<div class="group-title"><h2>Topics outside your slides</h2><span class="label">solved</span></div>' +
+        '<p class="note" style="margin-top:0">These exam questions cover topics that are not in Modules 1–' + chapters.length + '. They are solved, and will move into a chapter when its slides are added.</p><div class="grid">' +
         chapterCard(UNASSIGNED) + "</div>";
     }
     return h;
+  }
+
+  function examsBody() {
+    var h = '<div class="group-title"><h2>Exams &amp; quizzes</h2><span class="label">newest first</span></div><div class="grid">';
+    h += chapterCard(EVERY);
+    examIds.forEach(function (sid) { h += chapterCard(EXAM + sid); });
+    return h + "</div>";
   }
 
   function chapterCard(key) {
@@ -235,13 +265,19 @@
     var pct = st.total ? Math.round(100 * st.done / st.total) : 0;
     var num, title, meta;
     if (key === ALL) { num = "∗"; title = "All chapters mixed"; meta = list.length + " questions · good for a full mock exam"; }
-    else if (key === UNASSIGNED) { num = "?"; title = "Outside your slides"; meta = list.length + " questions · read-only for now"; }
+    else if (key === UNASSIGNED) { num = "?"; title = "Outside your slides"; meta = list.length + " questions · not in Modules 1–" + chapters.length; }
+    else if (key === EVERY) { num = "∗"; title = "All exams mixed"; meta = list.length + " questions · every exam and quiz"; }
+    else if (isExam(key)) {
+      var s = examOf(key);
+      num = examKind(s); title = s.label;
+      meta = list.length + " question" + (list.length === 1 ? "" : "s");
+    }
     else {
       var c = chById[key];
       num = c.number; title = c.title;
       meta = list.length + " question" + (list.length === 1 ? "" : "s") + (c.slideCount ? " · " + c.slideCount + " slides" : "");
     }
-    return '<button type="button" class="ch' + (key === ALL ? " all" : "") + '" data-ch="' + key + '"' + (list.length ? "" : " disabled") + ">" +
+    return '<button type="button" class="ch' + (key === ALL || key === EVERY ? " all" : "") + '" data-ch="' + esc(key) + '"' + (list.length ? "" : " disabled") + ">" +
       '<span class="num">' + num + '</span><span class="t">' + esc(title) + "</span>" +
       '<span class="meta">' + esc(meta) + (st.done ? " · " + st.done + " done · " + st.ok + " correct" : "") + "</span>" +
       '<span class="bar" aria-hidden="true"><span style="width:' + pct + '%"></span></span></button>';
@@ -286,12 +322,15 @@
     var n = S.order.length, type = typeOf(q), isGradable = gradable(q);
     var review = S.mode === "review";
     var revealed = isGradable && (!!rec.done || review);
+    var byExam = isExam(S.key) || S.key === EVERY;
+    var sec = sectionOf(q);
     navbar.hidden = false;
 
     var h = '<section class="qhead"><div class="row"><span class="pos">' + (S.idx + 1) + " / " + n + "</span>" +
-      "<h2>" + esc(chTitle(sectionOf(q))) + "</h2>" +
+      "<h2>" + esc(byExam ? source(q).label : chTitle(sec)) + "</h2>" +
       '<button type="button" class="btn ghost small" id="shuffleBtn" title="Shuffle the questions in this set">⤨ Shuffle</button></div>' +
       '<div class="row"><span class="tag">' + TYPE_LABEL[type] + '</span><span class="tag">' + esc(source(q).short) + " · " + esc(q.ref) + "</span>" +
+      (byExam && sec !== UNASSIGNED ? '<span class="tag">Chapter ' + esc(chById[sec].number) + "</span>" : "") +
       (review ? '<span class="tag accent">Reviewing mistakes</span>' : "") +
       (sectionOf(q) !== UNASSIGNED && !q.solution ? '<span class="tag warn">Unsolved – for me to solve</span>' : "") +
       (sectionOf(q) === UNASSIGNED ? '<span class="tag warn">Not in your slides yet</span>' : "") + "</div>" +
@@ -327,9 +366,10 @@
       }
     }
 
-    if (!isGradable) {
-      h += '<div class="why warn"><b>' + (sectionOf(q) === UNASSIGNED ? "Why it's outside your slides:" : "Why it's unsolved:") + "</b> " +
-        esc(q.unassignedReason || q.unsolvedReason || "No solution yet.") + "</div>";
+    if (sec === UNASSIGNED) {
+      h += '<div class="why warn"><b>Why it\'s outside your slides:</b> ' + esc(q.unassignedReason || "Its topic is not in the current slides.") + "</div>";
+    } else if (!isGradable) {
+      h += '<div class="why warn"><b>Why it\'s unsolved:</b> ' + esc(q.unsolvedReason || "No solution yet.") + "</div>";
     }
 
     if (!revealed) {
@@ -483,7 +523,7 @@
       (missed.length ? '<button type="button" class="btn accent" id="reviewMissed">Review my ' + missed.length + " mistake" + (missed.length === 1 ? "" : "s") + "</button>" +
         '<button type="button" class="btn" id="retryMissed">Retry them</button>' : "") +
       '<button type="button" class="btn ghost" id="again">Start this set again</button>' +
-      '<button type="button" class="btn ghost" id="back">All chapters</button></div>';
+      '<button type="button" class="btn ghost" id="back">' + (saved.by === "exam" ? "All exams" : "All chapters") + "</button></div>";
     if (missed.length) {
       h += '<div><h3 class="label" style="margin:.4rem 0 .6rem">Mistakes &amp; skipped — jump back to</h3><ul class="missed">' + missed.map(function (id) {
         var q = byId[id], i = S.order.indexOf(id), r = saved.answers[id];

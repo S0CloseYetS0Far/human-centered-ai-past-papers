@@ -1,6 +1,6 @@
 window.STUDY_DATA = {
   "course": "CS1352 — Human Centered Intelligent Systems Design",
-  "updated": "2026-11-03",
+  "updated": "2026-11-04",
   "sources": {
     "final-2026": {
       "label": "Final Exam — 2nd Semester 2026",
@@ -893,7 +893,75 @@ window.STUDY_DATA = {
         "Module 2, p.19 – A/B testing with live recommendations",
         "Module 2, p.20 – Testing AI systems: trust, fairness and bias",
         "Module 4, p.36 – Fairness and reliability in context inference (test diverse users)"
-      ]
+      ],
+      "solution": {
+        "answer": "1 Bias Audits · 2 Field Study · 3 A/B Testing · 4 Heuristic Evaluation · 5 Analytics · 6 Usability Testing · 7 Field Study · 8 A/B Testing · 9 Bias Audits · 10 Analytics",
+        "table": {
+          "headers": [
+            "Scenario",
+            "Evaluation Technique",
+            "Clue"
+          ],
+          "rows": [
+            [
+              "1. AI hiring tool, unfair rejection by postal code",
+              "**Bias Audits**",
+              "Checking whether the AI treats one group of people unfairly."
+            ],
+            [
+              "2. AI fitness coach, 100 real users, daily workouts for two weeks",
+              "**Field Study**",
+              "Real users, real setting, observed over time (\"real-world conditions\")."
+            ],
+            [
+              "3. Popularity vs predicted-rating lists shown to two groups at once",
+              "**A/B Testing**",
+              "Two versions shown to different groups at the same time and compared."
+            ],
+            [
+              "4. UX experts check a voice assistant against usability principles",
+              "**Heuristic Evaluation**",
+              "Experts, not users, inspect the design against a checklist of principles."
+            ],
+            [
+              "5. Spam filter: counts of spam, opened mail and false positives over a month",
+              "**Analytics**",
+              "Automatically logged usage numbers tracked over time."
+            ],
+            [
+              "6. 8 typical users in a lab test a photo-editing tool and rate ease of use",
+              "**Usability Testing**",
+              "Users do tasks in a controlled lab while the team watches and asks for ratings."
+            ],
+            [
+              "7. Chatbot deployed in a live call center for a week",
+              "**Field Study**",
+              "Deployed in the real environment with real agents and customers, watching for unexpected issues."
+            ],
+            [
+              "8. AI search vs old keyword search, random half of visitors, sales compared",
+              "**A/B Testing**",
+              "Random split of live traffic between two versions, compared on one metric (sales)."
+            ],
+            [
+              "9. Medical summaries omit symptoms for one dialect group",
+              "**Bias Audits**",
+              "The system works worse for one group of users."
+            ],
+            [
+              "10. Transcriptions started, completed, edited and abandoned",
+              "**Analytics**",
+              "Counting logged user actions, with no observation or experiment."
+            ]
+          ]
+        },
+        "steps": [
+          "This topic is not in your slides yet, so the answer uses the standard meaning of each technique.",
+          "**Heuristic Evaluation**: experts review the design against known usability principles, with no users involved. **Usability Testing**: representative users perform tasks in a controlled setting (often a lab) while you observe and measure. **A/B Testing**: two versions are shown to different (usually random) user groups at the same time and compared on a metric. **Analytics**: automatically logged usage data (counts, rates, drop-offs) analysed over time. **Field Study**: the system is used by real people in their real environment, and the team observes how it works there. **Bias Audits**: checking whether the AI performs worse or decides unfairly for a particular group.",
+          "Look for the deciding words. \"Experts\" + \"checklist\" → heuristic evaluation. \"Lab\" + \"typical users\" → usability testing. \"Two versions\" / \"half of visitors\" → A/B testing. \"Track how many…\" / \"records how many…\" → analytics. \"Real users\" / \"live\" / \"real-world conditions\" → field study. \"Unfairly\" / \"a specific group\" → bias audit.",
+          "Related ideas in your slides: Module 2, p.19 lists A/B testing with live recommendations, Module 2, p.20 asks \"does it work well for everyone?\" (fairness and bias), and Module 3, p.61 lists heuristic evaluation."
+        ]
+      }
     },
     {
       "id": "midterm-2026-q1a-1",
@@ -1138,7 +1206,51 @@ window.STUDY_DATA = {
         "Module 2, p.26 – Ethical requirements: privacy, fairness, transparency, accountability",
         "Module 4, p.28 – Ethical principles for HCAI systems",
         "Module 4, p.35 – Explainability and user control"
-      ]
+      ],
+      "solution": {
+        "answer": "1 **Local explanations** · 2 **Transparency** · 3 **Privacy** · 4 **Controllability** · 5 **Interactive exploration** · (**Fairness** is not used)",
+        "table": {
+          "headers": [
+            "Scenario",
+            "Term",
+            "Clue"
+          ],
+          "rows": [
+            [
+              "Doctor clicks \"High Risk\" and sees this case used 72% weight on cholesterol",
+              "**4. Local explanations**",
+              "Explains one specific decision for one case (\"this specific case\")."
+            ],
+            [
+              "Content-ranking AI never reveals what the ranking is based on",
+              "**6. Transparency**",
+              "Users can't see WHAT the system uses or WHY it shows them things."
+            ],
+            [
+              "Smart speaker stores voice clips that reveal routines and private talk",
+              "**1. Privacy**",
+              "Personal data is collected and kept beyond what the user intended."
+            ],
+            [
+              "Home assistant: users can't pause learning, roll back an update or disable features",
+              "**2. Controllability**",
+              "Users can't override, adjust or disable the adaptive behavior."
+            ],
+            [
+              "Traffic engineers change parameters in a simulator and instantly see predicted congestion",
+              "**3. Interactive exploration**",
+              "Users change inputs themselves and immediately see how the AI's predictions change (\"what if\")."
+            ]
+          ]
+        },
+        "steps": [
+          "There are 6 terms for 5 scenarios, so one term is left over. Match the clearest ones first.",
+          "**Privacy, Controllability and Transparency** are in your slides (Module 3, p.48 / Module 4, p.2): privacy = sensing and data collection must respect consent and data protection; controllability = users can override, adjust or disable adaptive behaviors; transparency = users understand WHAT the system is adapting and WHY. That settles scenarios 3, 4 and 2.",
+          "**Local explanations** (not in your slides) explain why the AI made **one particular** prediction, for example which features weighed most for this patient. The doctor's \"this specific case used 72% weight on cholesterol\" is exactly that.",
+          "**Interactive exploration** (not in your slides) lets users adjust inputs and watch the AI's output change straight away, to understand the model by experimenting. The traffic simulator scenario does this.",
+          "**Fairness** (equal treatment across groups) fits none of the scenarios, so it is the unused term."
+        ]
+      }
     },
     {
       "id": "midterm-2026-q2a",
