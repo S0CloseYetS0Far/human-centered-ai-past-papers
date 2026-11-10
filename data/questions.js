@@ -1,6 +1,6 @@
 window.STUDY_DATA = {
   "course": "CS1352 — Human Centered Intelligent Systems Design",
-  "updated": "2026-11-04",
+  "updated": "2026-11-10",
   "sources": {
     "final-2026": {
       "label": "Final Exam — 2nd Semester 2026",
@@ -36,6 +36,13 @@ window.STUDY_DATA = {
       "order": 2,
       "file": "exams/Quizzes/Quiz_Male_2nd_2026.pdf",
       "notes": "Phone photos, fully readable."
+    },
+    "midterm-1st-2026": {
+      "label": "Midterm Exam — 1st Semester 2026 (8 Nov 2026)",
+      "short": "Midterm Nov 2026",
+      "order": 6,
+      "file": "exams/Midterm/Midterm_1st_2026(08-nov-2026)/",
+      "notes": "Six phone photos (page1–page6.jpeg) of printed pages 2–7 of 7; the cover page is not included. Fully readable. Q2(c) shows only part i."
     }
   },
   "chapters": [
@@ -181,6 +188,907 @@ window.STUDY_DATA = {
     }
   ],
   "questions": [
+    {
+      "id": "midterm-1st-2026-q1a-1",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 1",
+      "page": 1,
+      "chapter": "ch1",
+      "marks": "0.5 mark",
+      "context": "Question 1 — Demonstrate your understanding of the principles of HCI and the evolution toward human-centered, intelligent, and ubiquitous systems by answering the following three (3) subquestions (a,b, and c). To be answered in (20) Minutes. [ ] / 10 Marks\na) Choose only ONE correct answer for each of the following. (4 marks)",
+      "text": "A smart speaker lights up a ring as soon as it hears the wake word. Which design principle does this illustrate?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Affordance"
+        },
+        {
+          "key": "B",
+          "text": "Feedback"
+        },
+        {
+          "key": "C",
+          "text": "Constraints"
+        }
+      ],
+      "slideRefs": [
+        "Module 1, p.12 – Design principles (Sharp et al.): visibility, feedback, constraints, consistency, affordance"
+      ],
+      "solution": {
+        "correctOption": "B",
+        "answer": "B — Feedback.",
+        "steps": [
+          "Module 1, p.12 defines **Feedback** as \"sending back information about what action has been done and what has been accomplished. Includes audio, tactile, verbal, visual, or combinations.\"",
+          "The lit ring is visual information sent back to tell the user \"I heard you\". That is feedback.",
+          "Affordance is how an object's look shows how to use it, like a door handle. Constraints restrict possible actions. Neither fits a light that confirms an action."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-2",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 2",
+      "page": 1,
+      "chapter": "ch1",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "A photo-editing app provides an \"Undo\" option so users can try effects without worrying. Which of Shneiderman's Eight Golden Rules does this support?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Prevent errors"
+        },
+        {
+          "key": "B",
+          "text": "Reduce short-term memory load"
+        },
+        {
+          "key": "C",
+          "text": "Permit easy reversal of actions"
+        }
+      ],
+      "slideRefs": [
+        "Module 1, p.13 – Shneiderman's Eight Golden Rules"
+      ],
+      "solution": {
+        "correctOption": "C",
+        "answer": "C — Permit easy reversal of actions.",
+        "steps": [
+          "Golden Rule 6, **Permit easy reversal of actions**: \"Allow users to undo actions to encourage exploration and reduce anxiety\" (Module 1, p.13).",
+          "The question's \"try effects without worrying\" is the slide's \"encourage exploration and reduce anxiety\".",
+          "Prevent errors stops mistakes from happening. Undo lets the user take an action back after it happens, so C is the right rule."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-3",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 3",
+      "page": 1,
+      "chapter": "ch1",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "A surgical robot moves exactly as the surgeon directs from a console. Which HCAI metaphor fits best?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Tele-bot"
+        },
+        {
+          "key": "B",
+          "text": "Tool"
+        },
+        {
+          "key": "C",
+          "text": "Assured autonomy"
+        }
+      ],
+      "slideRefs": [
+        "Module 1, p.33 – HCAI design metaphors (Teammate vs. Tele-bot)"
+      ],
+      "solution": {
+        "correctOption": "A",
+        "answer": "A — Tele-bot.",
+        "steps": [
+          "Module 1, p.33: **Tele-bot**: \"AI is remotely operated, acting as your hands in another place (**e.g., a surgeon controlling a surgical robot**).\" This is the slide's own example.",
+          "Tool means AI acts only when you trigger it, like a hammer. Assured autonomy means the AI runs on its own with verified safety. The robot here is remotely operated and moves exactly as directed, so it is a tele-bot."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-4",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 4",
+      "page": 1,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "In Shneiderman's two-dimensional framework, human control and computer automation are treated as:",
+      "options": [
+        {
+          "key": "A",
+          "text": "One dial, where more automation always means less human control"
+        },
+        {
+          "key": "B",
+          "text": "Two separate dimensions, so a system can be high on both at once"
+        },
+        {
+          "key": "C",
+          "text": "Opposing goals that designers must choose between"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.29 – HCAI two-dimensional framework"
+      ],
+      "solution": {
+        "correctOption": "B",
+        "answer": "B — Two separate dimensions, so a system can be high on both at once.",
+        "steps": [
+          "Module 2, p.29: \"**Two separate axes, not one dial**: Human Control and Computer Automation.\"",
+          "\"A system can score high on both at once — that's the goal, not a contradiction.\" That is the HCAI goal quadrant.",
+          "A and C describe the old one-dimensional view that the framework rejects."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-5",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 5",
+      "page": 1,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "An AI system that approves or rejects bank loan applications belongs to which application level?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Consequential applications"
+        },
+        {
+          "key": "B",
+          "text": "Recommender systems"
+        },
+        {
+          "key": "C",
+          "text": "Life-critical systems"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.30 – HCAI framework application levels"
+      ],
+      "solution": {
+        "correctOption": "A",
+        "answer": "A — Consequential applications.",
+        "steps": [
+          "Module 2, p.30 lists three levels. **Consequential applications** are \"medical, legal, **financial** systems\", where errors cause \"real, lasting harm — a wrong diagnosis, **an unfair loan denial**.\"",
+          "Recommender systems are low-stakes suggestions (search, shopping). Life-critical systems are things like self-driving cars and surgical robots, where an error can threaten life.",
+          "A loan decision is financial and can cause lasting harm, but it does not threaten life, so it is consequential."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-6",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 6",
+      "page": 1,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "Which statement correctly distinguishes the Microsoft and Google guidelines?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Microsoft's guidelines focus on the development process, while Google's focus on interaction behavior"
+        },
+        {
+          "key": "B",
+          "text": "Both focus only on the visual design of AI interfaces"
+        },
+        {
+          "key": "C",
+          "text": "Microsoft's guidelines focus on how the AI behaves and communicates during interaction, while Google's focus on the development process behind the system"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.38 – Microsoft AI-Human Interaction Guidelines and Google Responsible AI Guidelines"
+      ],
+      "solution": {
+        "correctOption": "C",
+        "answer": "C — Microsoft's guidelines focus on how the AI behaves and communicates during interaction, while Google's focus on the development process behind the system.",
+        "steps": [
+          "Look at the two lists on Module 2, p.38.",
+          "**Microsoft** (AI-Human **Interaction** Guidelines): make clear what the system can do, time services based on context, show contextually relevant info, match social norms, support efficient invocation/dismissal, learn from user behavior. All of these are about how the AI behaves with the user.",
+          "**Google** (Responsible AI Guidelines): use a human-centered design approach, identify multiple assessment metrics, directly examine raw data, understand data/model limitations, test thoroughly, continue monitoring after deployment. All of these are steps in building the system.",
+          "So Microsoft = interaction behavior and Google = development process. That is C. A swaps them, and B is wrong because neither list is about visual design."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-7",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 7",
+      "page": 1,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "Which of the following is one of the Microsoft AI-Human Interaction Guidelines?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Continue monitoring after deployment"
+        },
+        {
+          "key": "B",
+          "text": "Support efficient invocation and dismissal"
+        },
+        {
+          "key": "C",
+          "text": "Directly examine raw data"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.38 – Microsoft AI-Human Interaction Guidelines"
+      ],
+      "solution": {
+        "correctOption": "B",
+        "answer": "B — Support efficient invocation and dismissal.",
+        "steps": [
+          "Microsoft guideline 7 on Module 2, p.38: \"**Support efficient invocation/dismissal**\".",
+          "\"Continue monitoring after deployment\" (Google 6) and \"Directly examine raw data\" (Google 3) are both from the **Google** Responsible AI list on the same slide."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1a-8",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (a) · Item 8",
+      "page": 2,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (a) · Choose only ONE correct answer (4 marks)",
+      "text": "An intelligent system lets users interact through voice, touch, or gesture according to their preferences and abilities. Which inclusive design principle is applied?",
+      "options": [
+        {
+          "key": "A",
+          "text": "Simple and intuitive"
+        },
+        {
+          "key": "B",
+          "text": "Tolerance for error"
+        },
+        {
+          "key": "C",
+          "text": "Flexibility in use"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.41 – Inclusive design for intelligent systems"
+      ],
+      "solution": {
+        "correctOption": "C",
+        "answer": "C — Flexibility in use.",
+        "steps": [
+          "Module 2, p.41: **Flexibility in Use**: \"Accommodates wide range of preferences and abilities. **Multiple interaction modalities (voice, touch, gesture).**\"",
+          "The question repeats both parts: \"preferences and abilities\" and \"voice, touch, or gesture\".",
+          "Simple and intuitive is about being easy to understand. Tolerance for error is about minimising harm from accidental actions."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1b",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (b)",
+      "page": 2,
+      "chapter": "ch1",
+      "marks": "4 marks",
+      "context": "Question 1 · b) Matching",
+      "text": "b) Match each concept in Column A with the most appropriate description in Column B. (4 marks)\nColumn B:\nA. Works alongside the user as a separate collaborator\nB. Communicates necessary information effectively regardless of ambient conditions or sensory abilities\nC. Similar operations and elements for similar tasks\nD. High human control, high computer automation\nE. A human actively monitors the system and can intervene\nF. The more visible functions are, the more likely users know what to do next\nG. The design is useful and marketable to people with diverse abilities\nH. High human control, low computer automation",
+      "table": {
+        "headers": [
+          "Column A",
+          "Matching letter from Column B"
+        ],
+        "rows": [
+          [
+            "Visibility",
+            ""
+          ],
+          [
+            "Consistency",
+            ""
+          ],
+          [
+            "Control center",
+            ""
+          ],
+          [
+            "Teammate",
+            ""
+          ],
+          [
+            "Manual work quadrant",
+            ""
+          ],
+          [
+            "HCAI goal quadrant",
+            ""
+          ],
+          [
+            "Equitable use",
+            ""
+          ],
+          [
+            "Perceptible information",
+            ""
+          ]
+        ]
+      },
+      "slideRefs": [
+        "Module 1, p.12 – Design principles (visibility, consistency)",
+        "Module 1, p.33 – HCAI design metaphors (teammate, control center)",
+        "Module 2, p.29 – HCAI two-dimensional framework quadrants",
+        "Module 2, p.41 – Inclusive design (equitable use, perceptible information)"
+      ],
+      "solution": {
+        "answer": "Visibility → **F** · Consistency → **C** · Control center → **E** · Teammate → **A** · Manual work quadrant → **H** · HCAI goal quadrant → **D** · Equitable use → **G** · Perceptible information → **B**",
+        "steps": [
+          "Each description in Column B is almost word for word from a slide, so match them by the slide wording.",
+          "**Visibility → F** and **Consistency → C**: Module 1, p.12. Visibility: \"The more visible functions are, the more likely users will know what to do next.\" Consistency: \"similar operations and elements for similar tasks.\"",
+          "**Control center → E** and **Teammate → A**: Module 1, p.33. Control center: \"A human monitors and can intervene through a dashboard.\" Teammate: \"AI works alongside you as a collaborative partner, with its own role.\"",
+          "**Manual work quadrant → H** and **HCAI goal quadrant → D**: Module 2, p.29. Manual work is \"high control, low automation\". The HCAI goal is \"high control, high automation\".",
+          "**Equitable use → G** and **Perceptible information → B**: Module 2, p.41. Equitable use: \"useful and marketable to people with diverse abilities.\" Perceptible information: \"communicates necessary information effectively regardless of ambient conditions or sensory abilities.\"",
+          "All eight letters A–H are used exactly once."
+        ],
+        "table": {
+          "headers": [
+            "Column A",
+            "Letter",
+            "Slide wording"
+          ],
+          "rows": [
+            [
+              "Visibility",
+              "**F**",
+              "M1 p.12: more visible → users know what to do next"
+            ],
+            [
+              "Consistency",
+              "**C**",
+              "M1 p.12: similar operations and elements for similar tasks"
+            ],
+            [
+              "Control center",
+              "**E**",
+              "M1 p.33: a human monitors and can intervene"
+            ],
+            [
+              "Teammate",
+              "**A**",
+              "M1 p.33: works alongside you as a collaborative partner"
+            ],
+            [
+              "Manual work quadrant",
+              "**H**",
+              "M2 p.29: high control, low automation"
+            ],
+            [
+              "HCAI goal quadrant",
+              "**D**",
+              "M2 p.29: high control, high automation"
+            ],
+            [
+              "Equitable use",
+              "**G**",
+              "M2 p.41: useful and marketable to people with diverse abilities"
+            ],
+            [
+              "Perceptible information",
+              "**B**",
+              "M2 p.41: regardless of ambient conditions or sensory abilities"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1c-1",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (c) · Item 1",
+      "page": 2,
+      "chapter": "ch1",
+      "marks": "0.5 mark",
+      "context": "Question 1 — Demonstrate your understanding of the principles of HCI and the evolution toward human-centered, intelligent, and ubiquitous systems by answering the following three (3) subquestions (a,b, and c). To be answered in (20) Minutes. [ ] / 10 Marks\nc) State whether each of the following statements is True or False. (2 marks)",
+      "text": "1. A spam filter that decides on its own which emails the user never sees is an example of the Agent metaphor. ( ......... )",
+      "options": [
+        {
+          "key": "A",
+          "text": "True"
+        },
+        {
+          "key": "B",
+          "text": "False"
+        }
+      ],
+      "slideRefs": [
+        "Module 1, p.33 – HCAI design metaphors (Tool vs. Agent)"
+      ],
+      "solution": {
+        "correctOption": "A",
+        "answer": "True.",
+        "steps": [
+          "Module 1, p.33: **Agent**: \"AI acts with its own initiative, like a delegate making calls on your behalf.\" A **Tool** \"only acts when you trigger it.\"",
+          "The spam filter \"decides on its own\" what the user never sees. The user did not trigger each decision, so the AI is acting on its own initiative for the user. That is the Agent metaphor, so the statement is **True**."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1c-2",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (c) · Item 2",
+      "page": 2,
+      "chapter": "ch1",
+      "marks": "0.5 mark",
+      "context": "Question 1 (c) · True or False (2 marks)",
+      "text": "2. Shneiderman's golden rule \"Keep users in control\" mainly aims to make users depend fully on automation. ( ......... )",
+      "options": [
+        {
+          "key": "A",
+          "text": "True"
+        },
+        {
+          "key": "B",
+          "text": "False"
+        }
+      ],
+      "slideRefs": [
+        "Module 1, p.13 – Shneiderman's Eight Golden Rules (rule 7)"
+      ],
+      "solution": {
+        "correctOption": "B",
+        "answer": "False.",
+        "steps": [
+          "Golden Rule 7 on Module 1, p.13: **Keep users in control**: \"Experienced users want to feel in charge; support internal locus of control.\"",
+          "The rule aims to keep the user in charge, which is the opposite of depending fully on automation. So the statement is **False**."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1c-3",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (c) · Item 3",
+      "page": 2,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (c) · True or False (2 marks)",
+      "text": "3. According to Google's Responsible AI Guidelines, an AI system should be judged mainly on a single metric such as accuracy. ( ......... )",
+      "options": [
+        {
+          "key": "A",
+          "text": "True"
+        },
+        {
+          "key": "B",
+          "text": "False"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.38 – Google Responsible AI Guidelines"
+      ],
+      "solution": {
+        "correctOption": "B",
+        "answer": "False.",
+        "steps": [
+          "Google guideline 2 on Module 2, p.38: \"**Identify multiple assessment metrics**.\"",
+          "Judging the system on a single metric goes against this guideline, so the statement is **False**."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q1c-4",
+      "source": "midterm-1st-2026",
+      "ref": "Q1 (c) · Item 4",
+      "page": 2,
+      "chapter": "ch2",
+      "marks": "0.5 mark",
+      "context": "Question 1 (c) · True or False (2 marks)",
+      "text": "4. Inclusive design assumes that the \"average user\" does not exist and treats human diversity as a design input. ( ......... )",
+      "options": [
+        {
+          "key": "A",
+          "text": "True"
+        },
+        {
+          "key": "B",
+          "text": "False"
+        }
+      ],
+      "slideRefs": [
+        "Module 2, p.41 – Inclusive design for intelligent systems",
+        "Module 1, p.13 – Golden Rule 2: Seek universal usability"
+      ],
+      "solution": {
+        "correctOption": "A",
+        "answer": "True.",
+        "steps": [
+          "Module 2, p.41 starts inclusive design from Golden Rule 2, \"**Seek universal usability** — design to cater to diverse users across abilities, ages, cultures, and expertise levels\", and says \"AI systems must work for all.\"",
+          "Designing for that full range of users, instead of one typical user, is exactly treating diversity as a design input. So the statement is **True**.",
+          "The phrase \"average user\" itself is not on the slide, but the idea matches it."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q2a",
+      "source": "midterm-1st-2026",
+      "ref": "Q2 (a)",
+      "page": 3,
+      "chapter": "ch4",
+      "marks": "2 marks",
+      "context": "Question 2 — Describe how human–computer interaction principles extend to context-aware and AI-driven environments by answering the following four subquestions (a,b,c, and d). To be answered in (25) Minutes. [ ] / 10 Marks",
+      "text": "a) List all stages of the adaptive and context-aware behavior cycle (pipeline of adaptive systems) in their correct order, and briefly state what happens in each stage. (2 marks)",
+      "slideRefs": [
+        "Module 4, p.10 – Typical context-aware system pipeline",
+        "Module 4, p.2 – Adaptive and context-aware behavior: Sense, Interpret, Adapt, Learn",
+        "Module 3, p.48 – Adaptive and context-aware behavior"
+      ],
+      "solution": {
+        "answer": "**Sense → Interpret → Decide → Adapt → Learn & Improve**, repeated as a continuous feedback loop.",
+        "steps": [
+          "The question says \"all stages\" of the **pipeline**, so use the full pipeline on Module 4, p.10 (\"Typical Context-Aware System Pipeline\"). It has five stages:",
+          "1. **Sense**: collect context data from sensors, GPS, cameras and user behavior.",
+          "2. **Interpret**: understand the context. AI/ML and context models infer the current situation (for example location: at university, activity: walking).",
+          "3. **Decide**: determine the right action. Rules, models or learning algorithms choose the best response (send a notification, adjust settings, recommend content).",
+          "4. **Adapt**: personalize the system by delivering the content, service or interface change.",
+          "5. **Learn & Improve**: use feedback and outcomes to refine the models and improve future adaptation. This closes the **continuous feedback loop** back to Sense.",
+          "Module 3, p.48 and Module 4, p.2 give the shorter four-step cycle **Sense → Interpret → Adapt → Learn**, with Decide inside Interpret/Adapt. If your lecturer only expects four, that order is the one to write; the five-stage pipeline adds Decide between Interpret and Adapt."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q2b",
+      "source": "midterm-1st-2026",
+      "ref": "Q2 (b)",
+      "page": 3,
+      "chapter": "ch4",
+      "marks": "2 marks",
+      "context": "Question 2 · b)",
+      "text": "b) Read the scenario below. (2 marks)\nSara opens the campus navigation app CampusGo on her way to class. The app detects through GPS that she is near the Engineering building, and the accelerometer shows that she is walking quickly. Her phone battery is at 10%. Her profile shows that she prefers routes without stairs. The app suggests a short, step-free route and switches to a low-power display mode.\n\nIdentify four context sources that CampusGo uses, and give the evidence from the scenario for each.",
+      "table": {
+        "headers": [
+          "Context source",
+          "Evidence from the scenario"
+        ],
+        "rows": [
+          [
+            "",
+            ""
+          ],
+          [
+            "",
+            ""
+          ],
+          [
+            "",
+            ""
+          ],
+          [
+            "",
+            ""
+          ]
+        ]
+      },
+      "slideRefs": [
+        "Module 4, p.6 – Context sources (location, identity, activity, environment, device state, social)",
+        "Module 4, p.11 – Context sensing technologies (GPS, accelerometers)"
+      ],
+      "solution": {
+        "answer": "**Location** (GPS: near the Engineering building) · **Activity** (accelerometer: walking quickly) · **Device state** (battery at 10%) · **Identity** (profile: prefers routes without stairs)",
+        "steps": [
+          "Module 4, p.6 lists six context sources: Location, Identity, Activity, Environment, Device State and Social Context. Find one sentence in the scenario for four of them.",
+          "\"Detects through GPS that she is near the Engineering building\" → **Location**: \"physical position, GPS coordinates… proximity to objects\".",
+          "\"The accelerometer shows that she is walking quickly\" → **Activity**: \"what the user is doing: walking, driving…\". Module 4, p.11 names accelerometers as motion and activity sensors.",
+          "\"Her phone battery is at 10%\" → **Device State**: \"battery level, network connectivity…\". This is why the app switches to low-power display mode.",
+          "\"Her profile shows that she prefers routes without stairs\" → **Identity**: \"who the user is, their profile, role, preferences, and history\". This is why the route is step-free.",
+          "Environment and Social Context are not used: the scenario says nothing about temperature, noise or people nearby."
+        ],
+        "table": {
+          "headers": [
+            "Context source",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Location",
+              "GPS shows she is near the Engineering building"
+            ],
+            [
+              "Activity",
+              "Accelerometer shows she is walking quickly"
+            ],
+            [
+              "Device state",
+              "Phone battery is at 10% → low-power display mode"
+            ],
+            [
+              "Identity (profile/preferences)",
+              "Profile says she prefers routes without stairs → step-free route"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q2c",
+      "source": "midterm-1st-2026",
+      "ref": "Q2 (c) i",
+      "page": 3,
+      "chapter": "ch4",
+      "marks": "3 marks",
+      "context": "Question 2 · c)",
+      "text": "c) Read the scenario below. (3 marks)\nA university is building a smart library system that recommends study rooms to students. Requirement 1: The system must never recommend a room that is closed, reserved, or full. Requirement 2: It should also rank the available rooms according to each student's personal preferences and past booking behavior.\n\ni. Which context modeling approach is most suitable for each of the two requirements above? Justify each choice.",
+      "notes": "Only part i appears on the paper.",
+      "slideRefs": [
+        "Module 4, p.13 – Context modeling approaches: model-based vs. data-driven",
+        "Module 4, p.14 – Model-based and data-driven techniques",
+        "Module 4, p.15 – Which approach is better? (smart library example, hybrid approach)"
+      ],
+      "solution": {
+        "answer": "Requirement 1 → **Model-based** (fixed rules). Requirement 2 → **Data-driven** (machine learning). Together the system is a **hybrid** approach.",
+        "steps": [
+          "This is the exact smart-library example on Module 4, p.15.",
+          "**Requirement 1 → model-based.** \"Never recommend a closed, reserved or full room\" is a clear, fixed rule that must always hold. Module 4, p.15: model-based approaches are useful \"when rules are clear, predictable behavior is important, and decisions must be understandable.\" The slide's example: \"Use model-based rules to exclude rooms that are closed, reserved, or exceed permitted occupancy.\"",
+          "**Requirement 2 → data-driven.** Each student's preferences differ and must be learned from past bookings. Module 4, p.15: data-driven approaches are useful \"when contextual relationships are complex, user preferences vary\". Module 4, p.13: they \"learn contextual patterns from data\" and \"can improve through training and new data\". The slide's example: \"Use machine learning to rank the remaining rooms based on the student's preferences and historical behavior.\"",
+          "Combined, this is the **hybrid approach** (Module 4, p.15): rules give predictability, and machine learning gives flexibility. The slide adds that the student can still review the recommendations and choose another room."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q2d-i",
+      "source": "midterm-1st-2026",
+      "ref": "Q2 (d) i",
+      "page": 4,
+      "chapter": "ch4",
+      "marks": "1 mark",
+      "context": "Question 2 · d)",
+      "text": "d) Read the scenario below. (3 marks)\nA family installs an adaptive smart climate system that senses occupancy and activity, then automatically changes the room temperature. The system does not show what it has detected or why it makes each change. Ahmed noticed that the system made several wrong adjustments in the first week. He has now switched off the automatic mode and controls the temperature manually. Ahmed's father relies on the system completely. He no longer checks the temperature, and he did not notice when a faulty sensor made the system keep his room too cold for several days.\n\ni. Identify the type of trust problem shown by Ahmed and the type shown by his father. (1 mark)",
+      "slideRefs": [
+        "Module 4, p.26 – Trust calibration in adaptive systems (over-trust and under-trust risks)",
+        "Module 2, p.20 – Testing for AI-adaptive systems: trust calibration"
+      ],
+      "solution": {
+        "answer": "Ahmed → **under-trust**. His father → **over-trust**.",
+        "steps": [
+          "Both terms come from Module 4, p.26, \"Trust Calibration in Adaptive Systems\". Calibrated trust means relying on the system \"the right amount, not too much or too little\" (Module 2, p.20).",
+          "**Ahmed: under-trust.** The slide: \"Frequent false positives or **poorly explained adaptations erode trust, causing users to disable useful features and revert to manual control**.\" Ahmed saw wrong adjustments, the system never explained itself, and he switched off automatic mode to control it manually.",
+          "**His father: over-trust.** The slide: \"When systems appear too competent, users may **become complacent and fail to monitor for errors**.\" He relies on it completely, stopped checking, and missed the faulty sensor for days."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q2d-ii",
+      "source": "midterm-1st-2026",
+      "ref": "Q2 (d) ii",
+      "page": 4,
+      "chapter": "ch4",
+      "marks": "2 marks",
+      "context": "Question 2 · d) smart climate system (Ahmed and his father)",
+      "text": "ii. Propose two design features that would help calibrate both users' trust. (2 marks)",
+      "slideRefs": [
+        "Module 4, p.26 – Trust calibration in adaptive systems (show current status, mental models, stop actions)"
+      ],
+      "solution": {
+        "answer": "Any two of the trust-calibration features, for example: (1) **Show current status and explain each change** (\"Occupancy detected, 2 people. Lowering to 22 °C because the room is in use\"). (2) **Allow easy override and undo**, plus an alert when a reading looks wrong (\"Bedroom has been at 16 °C for 2 days — check sensor?\").",
+        "steps": [
+          "Module 4, p.26 gives three features that build appropriate trust: **show current status**, **provide mental models** (explain the adaptation logic), and **allow stop actions** (halt, override or undo).",
+          "**Feature 1: show what it detected and why.** A display or app panel shows the sensed occupancy and activity and a one-line reason for each temperature change. For Ahmed, the changes are no longer unexplained, so his trust can come back. For his father, he can see what the system thinks and spot when it is wrong.",
+          "**Feature 2: easy override and undo, with error alerts.** Ahmed can correct one bad adjustment without switching off automatic mode completely. For his father, an alert when the temperature stays outside the normal range, or when a sensor reading looks faulty, prompts him to check instead of relying blindly.",
+          "Why this fixes **both** problems: transparency raises Ahmed's too-low trust, and status plus alerts lower the father's too-high trust, so both end up relying on the system the right amount.",
+          "Other valid answers: a confidence indicator on each change, or a short weekly summary of what the system changed and why."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q3a",
+      "source": "midterm-1st-2026",
+      "ref": "Q3 (a)",
+      "page": 5,
+      "chapter": "ch2",
+      "marks": "2 marks",
+      "context": "Question 3 — Apply human-centered design methods to the case below by answering the following five subquestions (a,b,c,d, and e). To be answered in (25) Minutes. [ ] / 10 Marks",
+      "text": "Case Study: MediRemind\nA health-tech team is designing MediRemind, a context-aware system that helps older adults who live alone take their medication on time. The system uses three things: 1) A smart pill box that detects when it is opened; 2) A voice assistant; and 3) The user's phone. The team follows the Design Thinking process.\n\na) Empathize. Choose two user research methods that the team should use, and justify each choice in the context of MediRemind. At least one method must reveal what users actually do at home. (2 marks)",
+      "slideRefs": [
+        "Module 2, p.22 – User research methods (interviews, observation, questionnaires, focus groups)",
+        "Module 2, p.27 – Contextual inquiry for smart environments",
+        "Module 2, p.16 – Empathize for AI-adaptive systems"
+      ],
+      "solution": {
+        "answer": "(1) **Observation / contextual inquiry** in the users' homes: shows what they actually do (where the pill box is kept, when they take pills). (2) **Interviews**: reveal how they feel about reminders and how much control they want to keep.",
+        "steps": [
+          "Module 2, p.22 lists four methods: interviews (\"hear what they say\"), **observation** (\"**see what they do**\", including contextual inquiry), questionnaires and focus groups.",
+          "**Method 1: observation / contextual inquiry at home.** The question requires a method that shows what users actually **do** at home, and observation is the slide's \"see what they do\" method. Visiting older adults in their own homes (Module 2, p.27: \"Go to the user's workplace/home\") shows where the pill box sits, their daily routine, and whether they can hear a voice assistant or see the phone.",
+          "**Method 2: interviews.** Module 2, p.16 says Empathize for AI-adaptive systems must also uncover how users feel about handing tasks to automation, and that control expectations often have to be asked directly. Its own example: \"Interviewing older adults about a health-monitoring system reveals they want alerts sent to them, not automatic actions taken on their behalf.\" For MediRemind, interviews reveal what kind of reminder feels acceptable and who should be told if a dose is missed.",
+          "Using both is triangulation (Module 2, p.22): what users say plus what they do.",
+          "Questionnaires or focus groups are weaker choices here: they cannot show behaviour at home, and older adults living alone are hard to gather in groups."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q3b",
+      "source": "midterm-1st-2026",
+      "ref": "Q3 (b)",
+      "page": 5,
+      "chapter": "ch2",
+      "marks": "2 marks",
+      "context": "Question 3 · Case Study: MediRemind (see Q3 a)",
+      "text": "b) Contextual inquiry. During home visits, the team carries out the actions below. Identify the contextual inquiry principle (Context, Partnership, Interpretation, or Focus) that each action reflects. (2 marks)",
+      "table": {
+        "headers": [
+          "Action",
+          "Principle"
+        ],
+        "rows": [
+          [
+            "1. The researcher asks the user to lead her through her morning routine, treating her as a co-investigator.",
+            ""
+          ],
+          [
+            "2. The researcher studies only how users respond to medication reminders, not their general phone use.",
+            ""
+          ],
+          [
+            "3. The team visits users in their own homes to see where they keep the pill box and how they use it.",
+            ""
+          ],
+          [
+            "4. The researcher says, \"So you take your pills after breakfast because you eat first. Is that right?\" to check that her understanding is correct.",
+            ""
+          ]
+        ]
+      },
+      "slideRefs": [
+        "Module 2, p.27 – Contextual inquiry for smart environments (Context, Partnership, Interpretation, Focus)"
+      ],
+      "solution": {
+        "answer": "1 → **Partnership** · 2 → **Focus** · 3 → **Context** · 4 → **Interpretation**",
+        "steps": [
+          "Module 2, p.27 defines the four principles. Match each action to the slide wording.",
+          "1 → **Partnership**: \"Collaborate with users as **co-investigators**, letting them guide you through their experience.\" The user leads the researcher through her routine.",
+          "2 → **Focus**: \"Maintain a clear research focus on specific aspects of the human-AI interaction being studied.\" Only medication reminders are studied.",
+          "3 → **Context**: \"Go to the user's workplace/**home** to see how they interact with smart devices in their actual environment.\"",
+          "4 → **Interpretation**: \"Share and **validate your observations with users on the spot** to ensure accurate understanding.\" The researcher checks \"Is that right?\"",
+          "Each principle is used once."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q3c",
+      "source": "midterm-1st-2026",
+      "ref": "Q3 (c)",
+      "page": 5,
+      "chapter": "ch2",
+      "marks": "2 marks",
+      "context": "Question 3 · Case Study: MediRemind (see Q3 a)",
+      "text": "c) Requirements. Classify each of the following MediRemind requirements as Functional, Data, Usability, User Experience, or Environmental. (2 marks)",
+      "table": {
+        "headers": [
+          "Requirement",
+          "Type"
+        ],
+        "rows": [
+          [
+            "1. The system records the time the pill box is opened and keeps a 30-day history.",
+            ""
+          ],
+          [
+            "2. Reminders should feel calm and supportive, not alarming.",
+            ""
+          ],
+          [
+            "3. The system shall give a voice reminder when the pill box has not been opened by the scheduled time.",
+            ""
+          ],
+          [
+            "4. The system must work in a dim bedroom at night and in a noisy kitchen.",
+            ""
+          ]
+        ]
+      },
+      "slideRefs": [
+        "Module 2, p.26 – Discovering requirements for intelligent systems"
+      ],
+      "solution": {
+        "answer": "1 → **Data** · 2 → **User Experience** · 3 → **Functional** · 4 → **Environmental**",
+        "steps": [
+          "Use the requirement types on Module 2, p.26.",
+          "1 → **Data**: \"What data is captured, stored, and processed.\" Opening times are captured and a 30-day history is stored.",
+          "2 → **User Experience**: \"How the system feels to users — trust, satisfaction, engagement.\" The key word is \"feel\" (calm and supportive). It is not Usability, which is about how easy the system is to learn and use.",
+          "3 → **Functional**: \"What the AI system should do.\" The word \"shall\" plus an action (give a voice reminder when the box is not opened) marks a function.",
+          "4 → **Environmental**: \"Context of use — where, when, and how the system is accessed.\" A dim bedroom at night and a noisy kitchen are the physical conditions of use.",
+          "Usability is the one type not used."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q3d",
+      "source": "midterm-1st-2026",
+      "ref": "Q3 (d)",
+      "page": 6,
+      "chapter": "ch2",
+      "marks": "2 marks",
+      "context": "Question 3 · Case Study: MediRemind (see Q3 a)",
+      "text": "d) Prototype. The AI voice assistant has not been built yet, but the team wants to test how older adults respond to spoken reminders and conversations. Name a suitable low-fidelity prototyping method, and describe how the team would run it for MediRemind. (2 marks)",
+      "slideRefs": [
+        "Module 2, p.19 – Prototype for AI-adaptive systems (Wizard of Oz)"
+      ],
+      "solution": {
+        "answer": "**Wizard of Oz.** A hidden team member speaks the reminders and replies (through a speaker placed by the pill box) while the older adult believes the voice assistant is real.",
+        "steps": [
+          "Module 2, p.19: you cannot sketch what an AI will say before it is built. The low-fidelity method for this is **Wizard of Oz**: \"a human secretly supplies the AI's responses while the user believes they're talking to a real AI.\" It counts as low-fidelity because it is \"fast, cheap, and nothing real is actually built yet.\"",
+          "**How to run it for MediRemind:** put a simple speaker (or a phone acting as the \"assistant\") next to the pill box in the user's home or a home-like room.",
+          "A hidden team member (the \"wizard\") watches when the box is opened and, at the scheduled time, speaks a reminder through the speaker, for example \"It's 9 o'clock — time for your morning tablet.\" When the user answers (\"I already took it\", \"Remind me later\"), the wizard replies live as the assistant would.",
+          "The team records how users react: whether they hear and understand the voice, whether the tone feels calm, and what they say back. Afterwards they may tell the participant that a person was behind the voice.",
+          "Card sorting, the other low-fidelity method on the slide, groups AI recommendations. It cannot test spoken conversations, so it fits less well here."
+        ]
+      }
+    },
+    {
+      "id": "midterm-1st-2026-q3e",
+      "source": "midterm-1st-2026",
+      "ref": "Q3 (e)",
+      "page": 6,
+      "chapter": "ch2",
+      "marks": "2 marks",
+      "context": "Question 3 · Case Study: MediRemind (see Q3 a)",
+      "text": "e) Test. Testing produced the two findings below. For each finding, state which Design Thinking phase the team should go back to, and explain why. (2 marks)",
+      "table": {
+        "headers": [
+          "Finding",
+          "Phase to go back to and why"
+        ],
+        "rows": [
+          [
+            "1. Users liked the voice reminder, but many could not find the \"I've taken it\" confirmation button on the phone screen.",
+            ""
+          ],
+          [
+            "2. Several users ignored the reminders entirely. In interviews they explained that they wanted fewer interruptions, not more, and preferred a quiet cue such as the pill box lighting up.",
+            ""
+          ]
+        ]
+      },
+      "slideRefs": [
+        "Module 2, p.13 – Design Thinking process is non-linear (small jump vs. big jump)",
+        "Module 2, p.14 – Managing non-linearity: match the jump to the problem"
+      ],
+      "solution": {
+        "answer": "1 → back to **Prototype** (small jump: the idea is right, only the button design needs fixing). 2 → back to **Empathize** (big jump: the team misunderstood what users actually need).",
+        "steps": [
+          "Module 2, p.13 gives two kinds of jump back from Test, with examples that match these two findings almost exactly.",
+          "**Finding 1 → Prototype.** \"Small jump (Test → Prototype): The idea is right, but the design needs a small fix. Example: Users like the reminder feature but find the button confusing — team reworks the prototype only.\" Users liked the voice reminder, so the idea works. Only the hard-to-find button needs redesigning.",
+          "**Finding 2 → Empathize.** \"Big jump (Test → Empathize): The team misunderstood the user's actual need. Example: Users ignore the reminder feature entirely because they wanted fewer notifications, not more — team goes back to talk to users again.\" Here the core assumption (more reminders help) was wrong, so the team must understand users' real needs again before redesigning.",
+          "Module 2, p.14 sums it up: \"surface issue → small jump (Prototype); wrong understanding → big jump (Empathize).\""
+        ],
+        "table": {
+          "headers": [
+            "Finding",
+            "Go back to",
+            "Why"
+          ],
+          "rows": [
+            [
+              "1. Can't find \"I've taken it\" button",
+              "**Prototype**",
+              "Idea is right; surface design problem → small jump"
+            ],
+            [
+              "2. Ignored reminders, want fewer interruptions",
+              "**Empathize**",
+              "Team misunderstood the real need → big jump"
+            ]
+          ]
+        }
+      }
+    },
     {
       "id": "final-2026-q1-1",
       "source": "final-2026",
